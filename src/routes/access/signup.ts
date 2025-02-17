@@ -42,7 +42,7 @@ router.post(
       } as User,
       accessTokenKey,
       refreshTokenKey,
-      RoleCode.STAFF,
+      RoleCode.STUDENT,
     );
 
     const tokens = await createTokens(

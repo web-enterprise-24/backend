@@ -19,7 +19,7 @@ import KeystoreRepo from '../../database/repository/KeystoreRepo';
 const router = express.Router();
 
 //----------------------------------------------------------------
-router.use(authentication, role(RoleCode.ADMIN), authorization);
+router.use(authentication, role(RoleCode.STAFF), authorization);
 //----------------------------------------------------------------
 
 router.post(
