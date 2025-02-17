@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  name          String?
+  profilePicUrl String?
+  email         String?    @unique
+  password      String?
+  verified      Boolean    @default(false)
+  status        Boolean    @default(true)
+  createdAt     DateTime
+  updatedAt     DateTime
+  id            String     @id @default(cuid()) 
+  blogs         Blog[]     @relation("UserBlogs")
+  createdBlogs  Blog[]     @relation("CreatedBy")
+  updatedBlogs  Blog[]     @relation("UpdatedBy")
+  keystores     Keystore[]
+  roles         Role[]     @relation("RoleToUser")
+}
+
+model Blog {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  text        String?
+  draftText   String
+  tags        String[]
+  authorId    String
+  imgUrl      String?
+  blogUrl     String
+  likes       Int?
+  score       Float     @default(0.01)
+  isSubmitted Boolean   @default(false)
+  isDraft     Boolean   @default(true)
+  isPublished Boolean   @default(false)
+  status      Boolean   @default(true)
+  publishedAt DateTime?
+  createdById String
+  updatedById String
+  createdAt   DateTime
+  updatedAt   DateTime
+  author      User      @relation("UserBlogs", fields: [authorId], references: [id])
+  createdBy   User      @relation("CreatedBy", fields: [createdById], references: [id])
+  updatedBy   User      @relation("UpdatedBy", fields: [updatedById], references: [id])
+}
+
+model Keystore {
+  id           String   @id @default(cuid())
+  clientId     String
+  primaryKey   String
+  secondaryKey String
+  status       Boolean  @default(true)
+  createdAt    DateTime
+  updatedAt    DateTime
+  client       User     @relation(fields: [clientId], references: [id])
+}
+
+model Role {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  status    Boolean  @default(true)
+  createdAt DateTime
+  updatedAt DateTime
+  users     User[]   @relation("RoleToUser")
+}
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  version     Int
+  permissions String[]
+  comments    String[]
+  status      Boolean  @default(true)
+  createdAt   DateTime
+  updatedAt   DateTime
+}
