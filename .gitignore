@@ -26,9 +26,9 @@ coverage
 *.env copy
 
 #keys
-keys/*
-!keys/*.md
-!keys/*.example
+# keys/*
+# !keys/*.md
+# !keys/*.example
 
 #temp
 temp
