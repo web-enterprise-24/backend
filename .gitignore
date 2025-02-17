@@ -12,7 +12,7 @@ logs
 node_modules
 
 # ignore key
-*.pem
+# *.pem
 
 # Ignore built files
 build
