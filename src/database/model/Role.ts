@@ -4,10 +4,9 @@ export const DOCUMENT_NAME = 'Role';
 export const COLLECTION_NAME = 'roles';
 
 export enum RoleCode {
-  LEARNER = 'LEARNER',
-  WRITER = 'WRITER',
-  EDITOR = 'EDITOR',
-  ADMIN = 'ADMIN',
+  STAFF = 'STAFF',
+  TEACHER = 'TEACHER',
+  STUDENT = 'STUDENT',
 }
 
 export default interface Role {
