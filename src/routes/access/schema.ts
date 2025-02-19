@@ -19,5 +19,10 @@ export default {
     email: Joi.string().required().email(),
     password: Joi.string().required().min(6),
     profilePicUrl: Joi.string().optional().uri(),
+    dateOfBirth: Joi.date().optional(),
+    gender: Joi.string().optional(),
+    address: Joi.string().optional(),
+    city: Joi.string().optional(),
+    country: Joi.string().optional(),
   }),
 };

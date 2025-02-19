@@ -12,6 +12,11 @@ model User {
   profilePicUrl String?
   email         String?    @unique
   password      String?
+  dateOfBirth   DateTime?
+  gender        String?
+  address       String?
+  city          String?
+  country       String?
   verified      Boolean    @default(false)
   status        Boolean    @default(true)
   createdAt     DateTime

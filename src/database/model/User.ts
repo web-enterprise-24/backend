@@ -13,6 +13,11 @@ export default interface User {
   roles: Role[];
   verified?: boolean;
   status?: boolean;
+  dateOfBirth?: Date;
+  gender?: string;
+  address?: string;
+  city?: string;
+  country?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

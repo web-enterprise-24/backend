@@ -35,6 +35,7 @@ export default (
   ) =>
   (req: Request, res: Response, next: NextFunction) => {
     try {
+      console.log('🚀 ~ req scheme:', req);
       console.log('🚀 ~ req[source]:', req[source]);
       const { error } = schema.validate(req[source]);
 
