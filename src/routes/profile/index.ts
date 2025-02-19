@@ -5,9 +5,14 @@ import { ProtectedRequest } from 'app-request';
 import { BadRequestError } from '../../core/ApiError';
 import validator from '../../helpers/validator';
 import schema from './schema';
+import crypto from 'crypto';
 import asyncHandler from '../../helpers/asyncHandler';
 import _ from 'lodash';
+import bcrypt from 'bcrypt';
 import authentication from '../../auth/authentication';
+import { defaultPassword } from '../../config';
+import { RoleCode } from '../../database/model/Role';
+import { User } from '@prisma/client';
 
 const router = express.Router();
 
@@ -44,6 +49,43 @@ router.put(
     const data = _.pick(user, ['name', 'profilePicUrl']);
 
     return new SuccessResponse('Profile updated', data).send(res);
+  }),
+);
+
+router.post(
+  '/create',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const actionTriggerUser = await UserRepo.findByEmail(req.user.email || '');
+    if (
+      !actionTriggerUser?.roles.some((role) => role.code === RoleCode.STAFF)
+    ) {
+      throw new BadRequestError('You are not allowed to create student');
+    }
+
+    const user = await UserRepo.findByEmail(req.body.email);
+    if (user) throw new BadRequestError('User already registered');
+    const passwordHash = await bcrypt.hash(defaultPassword, 10);
+    const accessTokenKey = crypto.randomBytes(64).toString('hex');
+    console.log('🚀 ~ asyncHandler ~ accessTokenKey:', accessTokenKey);
+
+    const refreshTokenKey = crypto.randomBytes(64).toString('hex');
+    const { user: createdUser } = await UserRepo.create(
+      {
+        name: req.body.name,
+        email: req.body.email,
+        profilePicUrl: req.body.profilePicUrl,
+        password: passwordHash,
+        dateOfBirth: req.body.dateOfBirth,
+        gender: req.body.gender,
+        address: req.body.address,
+        city: req.body.city,
+        country: req.body.country,
+      } as User,
+      accessTokenKey,
+      refreshTokenKey,
+      RoleCode.STUDENT,
+    );
+    return new SuccessResponse('Student created', createdUser).send(res);
   }),
 );
 

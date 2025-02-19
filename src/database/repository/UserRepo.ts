@@ -84,6 +84,7 @@ async function findByEmail(email: string) {
   console.log('🚀 ~ findByEmail ~ email:', email);
   return await prisma.user.findUnique({
     where: { email },
+    include: { roles: true },
   });
 }
 

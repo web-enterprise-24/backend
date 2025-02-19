@@ -36,3 +36,5 @@ export const caching = {
     process.env.CONTENT_CACHE_DURATION_MILLIS || '600000',
   ),
 };
+
+export const defaultPassword = process.env.DEFAULT_PASSWORD || '12345678';
