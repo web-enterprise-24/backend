@@ -20,7 +20,12 @@ async function findByCodes(codes: string[]): Promise<Role[]> {
   return prisma.role.findMany({ where: { code: { in: codes }, status: true } });
 }
 
+async function findAll(): Promise<Role[]> {
+  return prisma.role.findMany({ where: { status: true } });
+}
+
 export default {
   findByCode,
   findByCodes,
+  findAll,
 };

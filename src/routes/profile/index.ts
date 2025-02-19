@@ -1,7 +1,7 @@
 import express from 'express';
 import { SuccessResponse } from '../../core/ApiResponse';
 import UserRepo from '../../database/repository/UserRepo';
-import { ProtectedRequest } from 'app-request';
+import { ProtectedRequest, PublicRequest } from 'app-request';
 import { BadRequestError } from '../../core/ApiError';
 import validator from '../../helpers/validator';
 import schema from './schema';
@@ -13,6 +13,7 @@ import authentication from '../../auth/authentication';
 import { defaultPassword } from '../../config';
 import { RoleCode } from '../../database/model/Role';
 import { User } from '@prisma/client';
+import RoleRepo from '../../database/repository/RoleRepo';
 
 const router = express.Router();
 
@@ -62,6 +63,8 @@ router.post(
       throw new BadRequestError('You are not allowed to create student');
     }
 
+    if (!req.body.role) throw new BadRequestError('Role is required');
+
     const user = await UserRepo.findByEmail(req.body.email);
     if (user) throw new BadRequestError('User already registered');
     const passwordHash = await bcrypt.hash(defaultPassword, 10);
@@ -69,6 +72,10 @@ router.post(
     console.log('🚀 ~ asyncHandler ~ accessTokenKey:', accessTokenKey);
 
     const refreshTokenKey = crypto.randomBytes(64).toString('hex');
+
+    const role = await RoleRepo.findByCode(req.body.role);
+    if (!role) throw new BadRequestError('Role not found');
+
     const { user: createdUser } = await UserRepo.create(
       {
         name: req.body.name,
@@ -83,9 +90,17 @@ router.post(
       } as User,
       accessTokenKey,
       refreshTokenKey,
-      RoleCode.STUDENT,
+      role.code,
     );
     return new SuccessResponse('Student created', createdUser).send(res);
+  }),
+);
+
+router.get(
+  '/roles',
+  asyncHandler(async (req: PublicRequest, res) => {
+    const roles = await RoleRepo.findAll();
+    return new SuccessResponse('Roles fetched', roles).send(res);
   }),
 );
 

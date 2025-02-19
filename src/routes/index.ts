@@ -12,6 +12,7 @@ export enum Permission {
   GENERAL = 'GENERAL',
 }
 import profile from './profile';
+import roles from './roles';
 
 const router = express.Router();
 
@@ -27,6 +28,7 @@ router.use('/logout', logout);
 router.use('/token', token);
 router.use('/credential', credential);
 router.use('/profile', profile);
+router.use('/roles', roles);
 // router.use('/blog', blog);
 // router.use('/blogs', blogs);
 

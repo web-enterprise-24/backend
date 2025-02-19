@@ -155,6 +155,7 @@ async function create(
   refreshTokenKey: string,
   roleCode: string,
 ) {
+  console.log('🚀 ~ user:', user);
   const now = new Date();
   const role = await prisma.role.findUnique({ where: { code: roleCode } });
   if (!role) throw new InternalError('Role must be defined');
@@ -165,6 +166,7 @@ async function create(
       ...user,
       roles: { connect: { id: role.id } },
     },
+    include: { roles: true },
   });
   console.log('🚀 ~ createdUser:', createdUser);
   const keystore = await KeystoreRepo.create(
