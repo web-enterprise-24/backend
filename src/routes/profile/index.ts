@@ -87,6 +87,7 @@ router.post(
         address: req.body.address,
         city: req.body.city,
         country: req.body.country,
+        requiredPasswordChange: true,
       } as User,
       accessTokenKey,
       refreshTokenKey,

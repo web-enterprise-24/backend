@@ -10,8 +10,8 @@ datasource db {
 model User {
   name          String?
   profilePicUrl String?
-  email         String?    @unique
-  password      String?
+  email         String    @unique
+  password      String
   dateOfBirth   DateTime?
   gender        String?
   address       String?
@@ -27,6 +27,7 @@ model User {
   updatedBlogs  Blog[]     @relation("UpdatedBy")
   keystores     Keystore[]
   roles         Role[]     @relation("RoleToUser")
+  requiredPasswordChange Boolean @default(false)
 }
 
 model Blog {
