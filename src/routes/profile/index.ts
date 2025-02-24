@@ -35,19 +35,26 @@ router.get(
 );
 
 router.put(
-  '/',
+  '/update',
   validator(schema.profile),
   asyncHandler(async (req: ProtectedRequest, res) => {
+    console.log("🚀 ~ asyncHandler ~ req:", req)
     // const user = await UserRepo.findPrivateProfileById(req.user._id);
     const user = await UserRepo.findPrivateProfileById(req.user.id);
     if (!user) throw new BadRequestError('User not registered');
-
     if (req.body.name) user.name = req.body.name;
     if (req.body.profilePicUrl) user.profilePicUrl = req.body.profilePicUrl;
+    if (req.body.dateOfBirth) user.dateOfBirth = req.body.dateOfBirth;
+    if (req.body.gender) user.gender = req.body.gender;
+    if (req.body.address) user.address = req.body.address;
+    if (req.body.city) user.city = req.body.city;
+    if (req.body.country) user.country = req.body.country;
+    
+   
+    const { roles , ...rest } = user; //destructuring "...rest"
+    await UserRepo.updateInfo(rest);
 
-    await UserRepo.updateInfo(user);
-
-    const data = _.pick(user, ['name', 'profilePicUrl']);
+    const data = _.pick(user, ['name', 'profilePicUrl', 'dateOfBirth', 'gender', 'address', 'city', 'country']);
 
     return new SuccessResponse('Profile updated', data).send(res);
   }),
