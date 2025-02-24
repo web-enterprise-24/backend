@@ -1,5 +1,6 @@
 import Joi from 'joi';
 import { JoiAuthBearer } from '../../helpers/validator';
+import { stat } from 'fs';
 
 export default {
   credential: Joi.object().keys({
@@ -28,5 +29,9 @@ export default {
     address: Joi.string().optional(),
     city: Joi.string().optional(),
     country: Joi.string().optional(),
+  }),
+  account: Joi.object().keys({
+    email: Joi.string().required().email(),
+    status: Joi.boolean().required(),
   }),
 };

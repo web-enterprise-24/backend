@@ -7,6 +7,7 @@ import { RoleCode } from '../../database/model/Role';
 import { BadRequestError } from '../../core/ApiError';
 import { SuccessResponse } from '../../core/ApiResponse';
 import validator from '../../helpers/validator';
+import schema from './schema';
 
 const router = express.Router();
 
@@ -16,6 +17,7 @@ router.use(authentication);
 
 router.put(
   '/',
+  validator(schema.account),
   asyncHandler(async (req: ProtectedRequest, res) => {
     const actionTriggerUser = await UserRepo.findByEmail(req.user.email || '');
     if (
