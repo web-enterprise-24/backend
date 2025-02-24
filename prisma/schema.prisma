@@ -8,27 +8,28 @@ datasource db {
 }
 
 model User {
-  id            String     @id @default(cuid()) 
-  name          String?
-  profilePicUrl String?
-  email         String    @unique
-  password      String
-  dateOfBirth   DateTime?
-  gender        String?
-  address       String?
-  city          String?
-  country       String?
-  verified      Boolean    @default(false)
-  status        Boolean    @default(true)
-  createdAt     DateTime
-  updatedAt     DateTime
-  active        Boolean    @default(true)
-  blogs         Blog[]     @relation("UserBlogs")
-  createdBlogs  Blog[]     @relation("CreatedBy")
-  updatedBlogs  Blog[]     @relation("UpdatedBy")
-  keystores     Keystore[]
-  roles         Role[]     @relation("RoleToUser")
-  requiredPasswordChange Boolean @default(false)
+  name                   String?
+  profilePicUrl          String?
+  email                  String     @unique
+  password               String
+  verified               Boolean    @default(false)
+  status                 Boolean    @default(true)
+  createdAt              DateTime
+  updatedAt              DateTime
+  id                     String     @id @default(cuid())
+  address                String?
+  city                   String?
+  country                String?
+  dateOfBirth            DateTime?
+  gender                 String?
+  requiredPasswordChange Boolean    @default(false)
+  firstName              String?
+  lastName               String?
+  blogs                  Blog[]     @relation("UserBlogs")
+  createdBlogs           Blog[]     @relation("CreatedBy")
+  updatedBlogs           Blog[]     @relation("UpdatedBy")
+  keystores              Keystore[]
+  roles                  Role[]     @relation("RoleToUser")
 }
 
 model Blog {
