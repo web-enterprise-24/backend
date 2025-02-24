@@ -228,6 +228,13 @@ async function updateInfo(user: User) {
   });
 }
 
+async function activeAccount(email: string, status: boolean) {
+  return await prisma.user.update({
+    where: { email },
+    data: { status },
+  });
+}
+
 export default {
   exists,
   findPrivateProfileById,
@@ -238,4 +245,5 @@ export default {
   create,
   update,
   updateInfo,
+  activeAccount,
 };

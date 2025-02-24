@@ -28,6 +28,7 @@ export default router.use(
       // const user = await UserRepo.findById(new Types.ObjectId(payload.sub));
       const user = await UserRepo.findById(payload.sub);
       if (!user) throw new AuthFailureError('User not registered');
+      if (!user.status) throw new AuthFailureError('Account not active');
       req.user = user;
 
       const keystore = await KeystoreRepo.findforKey(req.user, payload.prm);

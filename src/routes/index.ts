@@ -13,6 +13,7 @@ export enum Permission {
 }
 import profile from './profile';
 import roles from './roles';
+import account from './access/account';
 
 const router = express.Router();
 
@@ -29,6 +30,7 @@ router.use('/token', token);
 router.use('/credential', credential);
 router.use('/profile', profile);
 router.use('/roles', roles);
+router.use('/account', account);
 // router.use('/blog', blog);
 // router.use('/blogs', blogs);
 

@@ -8,6 +8,7 @@ datasource db {
 }
 
 model User {
+  id            String     @id @default(cuid()) 
   name          String?
   profilePicUrl String?
   email         String    @unique
@@ -21,7 +22,7 @@ model User {
   status        Boolean    @default(true)
   createdAt     DateTime
   updatedAt     DateTime
-  id            String     @id @default(cuid()) 
+  active        Boolean    @default(true)
   blogs         Blog[]     @relation("UserBlogs")
   createdBlogs  Blog[]     @relation("CreatedBy")
   updatedBlogs  Blog[]     @relation("UpdatedBy")
