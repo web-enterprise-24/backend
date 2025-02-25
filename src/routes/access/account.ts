@@ -37,7 +37,7 @@ router.put(
   }),
 );
 
-//getAllUsers
+//getUsersByRole
 router.get(
   '/',
   asyncHandler(async (req: ProtectedRequest, res) => {
@@ -49,7 +49,11 @@ router.get(
     const roleCode = req.query.role as RoleCode;
     const users = await UserRepo.findByRole(roleCode);
     
-    return new SuccessResponse('Users retrieved successfully', users).send(res);
+    // return new SuccessResponse('Users retrieved successfully', users).send(res);
+    return new SuccessResponse('Users retrieved successfully', {
+      result: users.length,
+      data: users
+    }).send(res);
   }),
 );
 
