@@ -230,9 +230,9 @@ async function updateInfo(user: User) {
   });
 }
 
-async function activeAccount(email: string, status: boolean) {
+async function activeAccount(id: string, status: boolean) {
   return await prisma.user.update({
-    where: { email },
+    where: { id },
     data: { status },
   });
 }
