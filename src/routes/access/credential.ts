@@ -38,6 +38,7 @@ router.post(
     await UserRepo.updateInfo({
       id: user.id,
       password: passwordHash,
+      requiredPasswordChange: false
     } as User);
 
     await KeystoreRepo.removeAllForClient(user);
