@@ -29,7 +29,7 @@ router.get(
 
     return new SuccessResponse(
       'success',
-      _.pick(user, ['id', 'name', 'profilePicUrl', 'email', 'dateOfBirth', 'gender', 'address', 'city', 'country', 'verified', 'status', 'createdAt', 'updatedAt', 'blogs', 'createdBlogs', 'updatedBlogs', 'keystores', 'roles']),
+      _.pick(user, ['id', 'name', 'profilePicUrl', 'email', 'dateOfBirth', 'gender', 'address', 'city', 'country', 'verified', 'status', 'createdAt', 'updatedAt', 'blogs', 'createdBlogs', 'updatedBlogs', 'keystores', 'roles', 'requiredPasswordChange']),
     ).send(res);
   }),
 );
