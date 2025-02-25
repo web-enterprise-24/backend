@@ -16,10 +16,12 @@ router.use(authentication);
 /*-------------------------------------------------------------------------*/
 
 //updateAccountStatus
-router.put(
-  '/',
+router.patch(
+  '/:userId',
   validator(schema.account),
   asyncHandler(async (req: ProtectedRequest, res) => {
+    const { userId } = req.params;
+
     const actionTriggerUser = await UserRepo.findByEmail(req.user.email || '');
     if (
       !actionTriggerUser?.roles.some((role) => role.code === RoleCode.STAFF)
@@ -27,7 +29,7 @@ router.put(
       throw new BadRequestError('You are not authorized to perform this action');
     }
 
-    const activeUser = await UserRepo.activeAccount(req.body.email, req.body.status);
+    const activeUser = await UserRepo.activeAccount(userId, req.body.status);
 
     // return new SuccessResponse('Account status updated', activeUser).send(res);
     return new SuccessResponse(

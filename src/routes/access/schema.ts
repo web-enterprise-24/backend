@@ -31,7 +31,7 @@ export default {
     country: Joi.string().optional(),
   }),
   account: Joi.object().keys({
-    email: Joi.string().required().email(),
+    // email: Joi.string().required().email(),
     status: Joi.boolean().required(),
   }),
 };
