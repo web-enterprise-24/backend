@@ -45,7 +45,9 @@ router.get(
     if (!actionTriggerUser?.roles.some(role => role.code === RoleCode.STAFF)) {
       throw new BadRequestError('Permission denied');
     }
-    const users = await UserRepo.findAll();
+
+    const roleCode = req.query.role as RoleCode;
+    const users = await UserRepo.findByRole(roleCode);
     
     return new SuccessResponse('Users retrieved successfully', users).send(res);
   }),
