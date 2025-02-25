@@ -15,6 +15,7 @@ const router = express.Router();
 router.use(authentication);
 /*-------------------------------------------------------------------------*/
 
+//updateAccountStatus
 router.put(
   '/',
   validator(schema.account),
@@ -33,6 +34,20 @@ router.put(
       `Account ${req.body.status ? 'activated' : 'deactivated'} successfully`, 
       activeUser
     ).send(res);
+  }),
+);
+
+//getAllUsers
+router.get(
+  '/',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const actionTriggerUser = await UserRepo.findByEmail(req.user.email);
+    if (!actionTriggerUser?.roles.some(role => role.code === RoleCode.STAFF)) {
+      throw new BadRequestError('Permission denied');
+    }
+    const users = await UserRepo.findAll();
+    
+    return new SuccessResponse('Users retrieved successfully', users).send(res);
   }),
 );
 
