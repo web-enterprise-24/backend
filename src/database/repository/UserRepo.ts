@@ -261,14 +261,45 @@ async function findAll() {
   });
 }
 
-async function findByRole(roleCode: string) {
+// async function findByRole(roleCode: string) {
+//   return await prisma.user.findMany({
+//     where: {
+//       roles: {
+//         some: {
+//           code: roleCode,
+//         },
+//       },
+//     },
+    // select: {
+    //   id: true,
+    //   email: true,
+    //   name: true,
+    //   profilePicUrl: true,
+    //   verified: true,
+    //   status: true,
+    //   createdAt: true,
+    //   updatedAt: true,
+    //   address: true,
+    //   city: true,
+    //   country: true,
+    //   dateOfBirth: true,
+    //   gender: true,
+    //   firstName: true,
+    //   lastName: true,
+    //   roles: true,
+    //   // password field is omitted
+    // }
+//   });
+// }
+
+async function findByRole(roleCode: string, skip?: number, limit?: number) {
   return await prisma.user.findMany({
     where: {
       roles: {
         some: {
           code: roleCode,
-        },
-      },
+        }
+      }
     },
     select: {
       id: true,
@@ -287,7 +318,21 @@ async function findByRole(roleCode: string) {
       firstName: true,
       lastName: true,
       roles: true,
-      // password field is omitted
+      // password is omitted by not including it in select
+    },
+    skip: skip,
+    take: limit,
+  });
+}
+
+async function countByRole(roleCode: string) {
+  return await prisma.user.count({
+    where: {
+      roles: {
+        some: {
+          code: roleCode,
+        }
+      }
     }
   });
 }
@@ -305,4 +350,5 @@ export default {
   activeAccount,
   findAll,
   findByRole,
+  countByRole,
 };
