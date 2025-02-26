@@ -92,14 +92,25 @@ router.put(
 
     const data = _.pick(user, [
       'id',
-      'name', 
-      'profilePicUrl', 
-      'dateOfBirth', 
-      'gender', 
-      'address', 
+      'name',
+      'profilePicUrl',
+      'email', 
+      'verified',
+      'status',
+      'createdAt',
+      'updatedAt',
+      'address',
       'city', 
       'country',
-      'roles'
+      'dateOfBirth',
+      'gender',
+      'firstName',
+      'lastName',
+      'blogs',
+      'createdBlogs',
+      'updatedBlogs',
+      'keystores',
+      'roles',
     ]);
 
     return new SuccessResponse('Profile updated', data).send(res);
