@@ -73,11 +73,17 @@ router.get(
     const skip = (page - 1) * limit;
 
     const roleCode = req.query.role as RoleCode;
+
+    // Get status filter from query params
+    let status: boolean | undefined;
+    if (req.query.status !== undefined) {
+      status = req.query.status === 'true';
+    }
     
     // Get total count and paginated users
     const [users, total] = await Promise.all([
-      UserRepo.findByRole(roleCode, skip, limit),
-      UserRepo.countByRole(roleCode)
+      UserRepo.findByRole(roleCode, skip, limit, status),
+      UserRepo.countByRole(roleCode, status)
     ]);
 
     // Calculate total pages

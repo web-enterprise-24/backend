@@ -292,14 +292,15 @@ async function findAll() {
 //   });
 // }
 
-async function findByRole(roleCode: string, skip?: number, limit?: number) {
+async function findByRole(roleCode: string, skip?: number, limit?: number, status?: boolean) {
   return await prisma.user.findMany({
     where: {
       roles: {
         some: {
           code: roleCode,
         }
-      }
+      },
+      ...(status !== undefined && { status }),
     },
     select: {
       id: true,
@@ -320,19 +321,21 @@ async function findByRole(roleCode: string, skip?: number, limit?: number) {
       roles: true,
       // password is omitted by not including it in select
     },
-    skip: skip,
+    // skip: skip,
+    skip,
     take: limit,
   });
 }
 
-async function countByRole(roleCode: string) {
+async function countByRole(roleCode: string, status?: boolean) {
   return await prisma.user.count({
     where: {
       roles: {
         some: {
           code: roleCode,
         }
-      }
+      },
+      ...(status !== undefined && { status })
     }
   });
 }
