@@ -66,7 +66,7 @@ router.put(
   asyncHandler(async (req: ProtectedRequest, res) => {
     const { userId } = req.params;
     
-    // Check if the requesting user has permission (e.g., is STAFF or ADMIN)
+    // Check if the requesting user has permission (e.g., is STAFF)
     const actionTriggerUser = await UserRepo.findPrivateProfileById(req.user.id);
     if (!actionTriggerUser?.roles.some(role => 
       role.code === RoleCode.STAFF || role.code === RoleCode.STAFF
@@ -97,7 +97,8 @@ router.put(
       'gender', 
       'address', 
       'city', 
-      'country'
+      'country',
+      'roles'
     ]);
 
     return new SuccessResponse('Profile updated', data).send(res);
