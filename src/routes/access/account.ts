@@ -84,7 +84,8 @@ router.get(
     const totalPages = Math.ceil(total / limit);
 
     // Build pagination links
-    const baseUrl = `${req.protocol}://${req.get('host')}${req.baseUrl}${req.path}`;
+    // const baseUrl = `${req.protocol}://${req.get('host')}${req.baseUrl}${req.path}`;
+    const baseUrl = `https://${req.get('host')}${req.baseUrl}${req.path}`;
     const pagination = {
       next: page < totalPages 
         ? `${baseUrl}?page=${page + 1}&limit=${limit}&role=${roleCode}`
