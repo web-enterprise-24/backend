@@ -91,6 +91,7 @@ router.put(
     await UserRepo.updateInfo(rest);
 
     const data = _.pick(user, [
+      'id',
       'name', 
       'profilePicUrl', 
       'dateOfBirth', 
