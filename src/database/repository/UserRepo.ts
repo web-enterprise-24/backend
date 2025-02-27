@@ -297,7 +297,8 @@ async function findByRole(
   skip?: number, 
   limit?: number, 
   status?: boolean,
-  sortOrder: 'asc' | 'desc' = 'desc'
+  sortOrder: 'asc' | 'desc' = 'desc',
+  search?: string,
 ) {
   return await prisma.user.findMany({
     where: {
@@ -307,6 +308,14 @@ async function findByRole(
         }
       },
       ...(status !== undefined && { status }),
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+          // { firstName: { contains: search, mode: 'insensitive' } },
+          // { lastName: { contains: search, mode: 'insensitive' } }
+        ]
+      })
     },
     select: {
       id: true,
@@ -336,7 +345,11 @@ async function findByRole(
   });
 }
 
-async function countByRole(roleCode: string, status?: boolean) {
+async function countByRole(
+  roleCode: string, 
+  status?: boolean,
+  search?: string,
+) {
   return await prisma.user.count({
     where: {
       roles: {
@@ -344,7 +357,15 @@ async function countByRole(roleCode: string, status?: boolean) {
           code: roleCode,
         }
       },
-      ...(status !== undefined && { status })
+      ...(status !== undefined && { status }),
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+          // { firstName: { contains: search, mode: 'insensitive' } },
+          // { lastName: { contains: search, mode: 'insensitive' } }
+        ]
+      })
     }
   });
 }
