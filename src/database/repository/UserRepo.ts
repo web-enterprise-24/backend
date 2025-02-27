@@ -292,7 +292,13 @@ async function findAll() {
 //   });
 // }
 
-async function findByRole(roleCode: string, skip?: number, limit?: number, status?: boolean) {
+async function findByRole(
+  roleCode: string, 
+  skip?: number, 
+  limit?: number, 
+  status?: boolean,
+  sortOrder: 'asc' | 'desc' = 'desc'
+) {
   return await prisma.user.findMany({
     where: {
       roles: {
@@ -320,6 +326,9 @@ async function findByRole(roleCode: string, skip?: number, limit?: number, statu
       lastName: true,
       roles: true,
       // password is omitted by not including it in select
+    },
+    orderBy: {
+      updatedAt: sortOrder,
     },
     // skip: skip,
     skip,
