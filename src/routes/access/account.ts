@@ -54,19 +54,19 @@ router.get(
     const skip = (page - 1) * limit;
 
     const roleCode = req.query.role as RoleCode;
+    const sortOrder = (req.query.sort as 'asc' | 'desc') || 'desc';
+    const search = req.query.search as string || '';
 
     // Get status filter from query params
     let status: boolean | undefined;
     if (req.query.status !== undefined) {
       status = req.query.status === 'true';
     }
-
-    const sortOrder = (req.query.sort as 'asc' | 'desc') || 'desc';
     
     // Get total count and paginated users
     const [users, total] = await Promise.all([
-      UserRepo.findByRole(roleCode, skip, limit, status, sortOrder),
-      UserRepo.countByRole(roleCode, status)
+      UserRepo.findByRole(roleCode, skip, limit, status, sortOrder, search),
+      UserRepo.countByRole(roleCode, status, search)
     ]);
 
     // Calculate total pages
@@ -77,10 +77,10 @@ router.get(
     const baseUrl = `https://${req.get('host')}${req.baseUrl}${req.path}`;
     const pagination = {
       next: page < totalPages 
-        ? `${baseUrl}?page=${page + 1}&limit=${limit}&role=${roleCode}&status=${status}&sort=${sortOrder}`
+        ? `${baseUrl}?page=${page + 1}&limit=${limit}&role=${roleCode}&status=${status}&sort=${sortOrder}&search=${search}`
         : null,
       previous: page > 1
-        ? `${baseUrl}?page=${page - 1}&limit=${limit}&role=${roleCode}&status=${status}&sort=${sortOrder}`
+        ? `${baseUrl}?page=${page - 1}&limit=${limit}&role=${roleCode}&status=${status}&sort=${sortOrder}&search=${search}`
         : null
     };
     
