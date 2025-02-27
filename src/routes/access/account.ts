@@ -40,25 +40,6 @@ router.patch(
 );
 
 //getUsersByRole
-// router.get(
-//   '/',
-//   asyncHandler(async (req: ProtectedRequest, res) => {
-//     const actionTriggerUser = await UserRepo.findByEmail(req.user.email);
-//     if (!actionTriggerUser?.roles.some(role => role.code === RoleCode.STAFF)) {
-//       throw new BadRequestError('Permission denied');
-//     }
-
-//     const roleCode = req.query.role as RoleCode;
-//     const users = await UserRepo.findByRole(roleCode);
-    
-//     // return new SuccessResponse('Users retrieved successfully', users).send(res);
-//     return new SuccessResponse('Users retrieved successfully', {
-//       result: users.length,
-//       data: users
-//     }).send(res);
-//   }),
-// );
-
 router.get(
   '/',
   asyncHandler(async (req: ProtectedRequest, res) => {
@@ -79,10 +60,12 @@ router.get(
     if (req.query.status !== undefined) {
       status = req.query.status === 'true';
     }
+
+    const sortOrder = (req.query.sort as 'asc' | 'desc') || 'desc';
     
     // Get total count and paginated users
     const [users, total] = await Promise.all([
-      UserRepo.findByRole(roleCode, skip, limit, status),
+      UserRepo.findByRole(roleCode, skip, limit, status, sortOrder),
       UserRepo.countByRole(roleCode, status)
     ]);
 
@@ -94,10 +77,10 @@ router.get(
     const baseUrl = `https://${req.get('host')}${req.baseUrl}${req.path}`;
     const pagination = {
       next: page < totalPages 
-        ? `${baseUrl}?page=${page + 1}&limit=${limit}&role=${roleCode}`
+        ? `${baseUrl}?page=${page + 1}&limit=${limit}&role=${roleCode}&status=${status}&sort=${sortOrder}`
         : null,
       previous: page > 1
-        ? `${baseUrl}?page=${page - 1}&limit=${limit}&role=${roleCode}`
+        ? `${baseUrl}?page=${page - 1}&limit=${limit}&role=${roleCode}&status=${status}&sort=${sortOrder}`
         : null
     };
     
