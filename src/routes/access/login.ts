@@ -21,6 +21,7 @@ router.post(
     const user = await UserRepo.findByEmail(req.body.email);
     if (!user) throw new BadRequestError('User not registered');
     if (!user.password) throw new BadRequestError('Credential not set');
+    if (!user.status) throw new BadRequestError('Account not active');
 
     const match = await bcrypt.compare(req.body.password, user.password);
     if (!match) throw new AuthFailureError('Authentication failure');

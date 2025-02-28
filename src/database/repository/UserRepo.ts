@@ -9,6 +9,8 @@ import KeystoreRepo from './KeystoreRepo';
 // import Keystore from '../model/Keystore';
 import prisma from '../prismaClient';
 import { User } from '@prisma/client';
+import { find } from 'lodash';
+import role from '../../helpers/role';
 
 async function exists(id: Types.ObjectId): Promise<boolean> {
   const user = await UserModel.exists({ _id: id, status: true });
@@ -228,6 +230,146 @@ async function updateInfo(user: User) {
   });
 }
 
+async function activeAccount(id: string, status: boolean) {
+  return await prisma.user.update({
+    where: { id },
+    data: { status },
+  });
+}
+
+async function findAll() {
+  return await prisma.user.findMany({
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      profilePicUrl: true,
+      verified: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      address: true,
+      city: true,
+      country: true,
+      dateOfBirth: true,
+      gender: true,
+      firstName: true,
+      lastName: true,
+      roles: true,
+      // password field is omitted
+    },
+  });
+}
+
+// async function findByRole(roleCode: string) {
+//   return await prisma.user.findMany({
+//     where: {
+//       roles: {
+//         some: {
+//           code: roleCode,
+//         },
+//       },
+//     },
+    // select: {
+    //   id: true,
+    //   email: true,
+    //   name: true,
+    //   profilePicUrl: true,
+    //   verified: true,
+    //   status: true,
+    //   createdAt: true,
+    //   updatedAt: true,
+    //   address: true,
+    //   city: true,
+    //   country: true,
+    //   dateOfBirth: true,
+    //   gender: true,
+    //   firstName: true,
+    //   lastName: true,
+    //   roles: true,
+    //   // password field is omitted
+    // }
+//   });
+// }
+
+async function findByRole(
+  roleCode: string, 
+  skip?: number, 
+  limit?: number, 
+  status?: boolean,
+  sortOrder: 'asc' | 'desc' = 'desc',
+  search?: string,
+) {
+  return await prisma.user.findMany({
+    where: {
+      roles: {
+        some: {
+          code: roleCode,
+        }
+      },
+      ...(status !== undefined && { status }),
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+          // { firstName: { contains: search, mode: 'insensitive' } },
+          // { lastName: { contains: search, mode: 'insensitive' } }
+        ]
+      })
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      profilePicUrl: true,
+      verified: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      address: true,
+      city: true,
+      country: true,
+      dateOfBirth: true,
+      gender: true,
+      firstName: true,
+      lastName: true,
+      roles: true,
+      // password is omitted by not including it in select
+    },
+    orderBy: {
+      updatedAt: sortOrder,
+    },
+    // skip: skip,
+    skip,
+    take: limit,
+  });
+}
+
+async function countByRole(
+  roleCode: string, 
+  status?: boolean,
+  search?: string,
+) {
+  return await prisma.user.count({
+    where: {
+      roles: {
+        some: {
+          code: roleCode,
+        }
+      },
+      ...(status !== undefined && { status }),
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+          // { firstName: { contains: search, mode: 'insensitive' } },
+          // { lastName: { contains: search, mode: 'insensitive' } }
+        ]
+      })
+    }
+  });
+}
+
 export default {
   exists,
   findPrivateProfileById,
@@ -238,4 +380,8 @@ export default {
   create,
   update,
   updateInfo,
+  activeAccount,
+  findAll,
+  findByRole,
+  countByRole,
 };

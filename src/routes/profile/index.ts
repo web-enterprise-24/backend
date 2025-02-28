@@ -29,25 +29,89 @@ router.get(
 
     return new SuccessResponse(
       'success',
-      _.pick(user, ['id', 'name', 'profilePicUrl', 'email', 'dateOfBirth', 'gender', 'address', 'city', 'country', 'verified', 'status', 'createdAt', 'updatedAt', 'blogs', 'createdBlogs', 'updatedBlogs', 'keystores', 'roles']),
+      _.pick(user, ['id', 'name', 'profilePicUrl', 'email', 'dateOfBirth', 'gender', 'address', 'city', 'country', 'verified', 'status', 'createdAt', 'updatedAt', 'blogs', 'createdBlogs', 'updatedBlogs', 'keystores', 'roles', 'requiredPasswordChange']),
     ).send(res);
   }),
 );
 
+// router.put(
+//   '/update',
+//   validator(schema.profile),
+//   asyncHandler(async (req: ProtectedRequest, res) => {
+//     console.log("🚀 ~ asyncHandler ~ req:", req)
+//     // const user = await UserRepo.findPrivateProfileById(req.user._id);
+//     const user = await UserRepo.findPrivateProfileById(req.user.id);
+//     if (!user) throw new BadRequestError('User not registered');
+//     if (req.body.name) user.name = req.body.name;
+//     if (req.body.profilePicUrl) user.profilePicUrl = req.body.profilePicUrl;
+//     if (req.body.dateOfBirth) user.dateOfBirth = req.body.dateOfBirth;
+//     if (req.body.gender) user.gender = req.body.gender;
+//     if (req.body.address) user.address = req.body.address;
+//     if (req.body.city) user.city = req.body.city;
+//     if (req.body.country) user.country = req.body.country;
+    
+   
+//     const { roles , ...rest } = user; //destructuring "...rest"
+//     await UserRepo.updateInfo(rest);
+
+//     const data = _.pick(user, ['name', 'profilePicUrl', 'dateOfBirth', 'gender', 'address', 'city', 'country']);
+
+//     return new SuccessResponse('Profile updated', data).send(res);
+//   }),
+// );
+
 router.put(
-  '/',
+  '/update/:userId',  // Add userId parameter to the route
   validator(schema.profile),
   asyncHandler(async (req: ProtectedRequest, res) => {
-    // const user = await UserRepo.findPrivateProfileById(req.user._id);
-    const user = await UserRepo.findPrivateProfileById(req.user.id);
-    if (!user) throw new BadRequestError('User not registered');
+    const { userId } = req.params;
+    
+    // Check if the requesting user has permission (e.g., is STAFF)
+    const actionTriggerUser = await UserRepo.findPrivateProfileById(req.user.id);
+    if (!actionTriggerUser?.roles.some(role => 
+      role.code === RoleCode.STAFF || role.code === RoleCode.STAFF
+    )) {
+      throw new BadRequestError('Permission denied');
+    }
 
+    // Find the user to update
+    const user = await UserRepo.findPrivateProfileById(userId);
+    if (!user) throw new BadRequestError('User not found');
+
+    // Update user fields
     if (req.body.name) user.name = req.body.name;
     if (req.body.profilePicUrl) user.profilePicUrl = req.body.profilePicUrl;
+    if (req.body.dateOfBirth) user.dateOfBirth = req.body.dateOfBirth;
+    if (req.body.gender) user.gender = req.body.gender;
+    if (req.body.address) user.address = req.body.address;
+    if (req.body.city) user.city = req.body.city;
+    if (req.body.country) user.country = req.body.country;
+    
+    const { roles, ...rest } = user;
+    await UserRepo.updateInfo(rest);
 
-    await UserRepo.updateInfo(user);
-
-    const data = _.pick(user, ['name', 'profilePicUrl']);
+    const data = _.pick(user, [
+      'id',
+      'name',
+      'profilePicUrl',
+      'email', 
+      'verified',
+      'status',
+      'createdAt',
+      'updatedAt',
+      'address',
+      'city', 
+      'country',
+      'dateOfBirth',
+      'gender',
+      'firstName',
+      'lastName',
+      'blogs',
+      'createdBlogs',
+      'updatedBlogs',
+      'keystores',
+      'roles',
+    ]);
 
     return new SuccessResponse('Profile updated', data).send(res);
   }),
