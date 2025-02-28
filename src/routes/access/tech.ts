@@ -1,7 +1,6 @@
 import express from 'express';
 import { SuccessResponse } from '../../core/ApiResponse';
-import { ProtectedRequest, RoleRequest } from 'app-request';
-import UserRepo from '../../database/repository/UserRepo';
+import { ProtectedRequest } from 'app-request';
 import { BadRequestError } from '../../core/ApiError';
 // import User from '../../database/model/User';
 import { User } from '@prisma/client';
@@ -15,6 +14,7 @@ import _ from 'lodash';
 // import authorization from '../../auth/authorization';
 import authentication from '../../auth/authentication';
 import KeystoreRepo from '../../database/repository/KeystoreRepo';
+import UserRepo from '../../database/repository/UserRepo';
 
 const router = express.Router();
 
