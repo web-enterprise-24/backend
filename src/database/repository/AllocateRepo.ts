@@ -8,6 +8,7 @@ async function getMyTutor(studentId: string) {
   const allocation = await prisma.allocation.findFirst({
     where: { studentId },
   });
+  console.log('🚀 ~ getMyTutor ~ allocation:', allocation);
   if (!allocation) {
     console.error('Allocation not found');
     return null;
@@ -63,12 +64,10 @@ async function changeTutor(studentId: string, tutorId: string) {
 
 async function unallocateTutor(studentId: string) {
   const myTutor = await getMyTutor(studentId);
+  console.log('🚀 ~ unallocateTutor ~ myTutor:', myTutor);
   if (!myTutor) throw new BadRequestError('Student does not have a tutor');
-  const allocation = await prisma.allocation.update({
+  const allocation = await prisma.allocation.delete({
     where: { studentId },
-    data: {
-      tutorId: null,
-    },
   });
   const allocationHistory = await prisma.allocationHistory.create({
     data: {
