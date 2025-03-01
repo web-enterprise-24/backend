@@ -29,7 +29,27 @@ router.get(
 
     return new SuccessResponse(
       'success',
-      _.pick(user, ['id', 'name', 'profilePicUrl', 'email', 'dateOfBirth', 'gender', 'address', 'city', 'country', 'verified', 'status', 'createdAt', 'updatedAt', 'blogs', 'createdBlogs', 'updatedBlogs', 'keystores', 'roles', 'requiredPasswordChange']),
+      _.pick(user, [
+        'id',
+        'name',
+        'profilePicUrl',
+        'email',
+        'dateOfBirth',
+        'gender',
+        'address',
+        'city',
+        'country',
+        'verified',
+        'status',
+        'createdAt',
+        'updatedAt',
+        'blogs',
+        'createdBlogs',
+        'updatedBlogs',
+        'keystores',
+        'roles',
+        'requiredPasswordChange',
+      ]),
     ).send(res);
   }),
 );
@@ -49,8 +69,7 @@ router.get(
 //     if (req.body.address) user.address = req.body.address;
 //     if (req.body.city) user.city = req.body.city;
 //     if (req.body.country) user.country = req.body.country;
-    
-   
+
 //     const { roles , ...rest } = user; //destructuring "...rest"
 //     await UserRepo.updateInfo(rest);
 
@@ -61,16 +80,20 @@ router.get(
 // );
 
 router.put(
-  '/update/:userId',  // Add userId parameter to the route
+  '/update/:userId', // Add userId parameter to the route
   validator(schema.profile),
   asyncHandler(async (req: ProtectedRequest, res) => {
     const { userId } = req.params;
-    
+
     // Check if the requesting user has permission (e.g., is STAFF)
-    const actionTriggerUser = await UserRepo.findPrivateProfileById(req.user.id);
-    if (!actionTriggerUser?.roles.some(role => 
-      role.code === RoleCode.STAFF || role.code === RoleCode.STAFF
-    )) {
+    const actionTriggerUser = await UserRepo.findPrivateProfileById(
+      req.user.id,
+    );
+    if (
+      !actionTriggerUser?.roles.some(
+        (role) => role.code === RoleCode.STAFF || role.code === RoleCode.STAFF,
+      )
+    ) {
       throw new BadRequestError('Permission denied');
     }
 
@@ -86,7 +109,8 @@ router.put(
     if (req.body.address) user.address = req.body.address;
     if (req.body.city) user.city = req.body.city;
     if (req.body.country) user.country = req.body.country;
-    
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { roles, ...rest } = user;
     await UserRepo.updateInfo(rest);
 
@@ -94,13 +118,13 @@ router.put(
       'id',
       'name',
       'profilePicUrl',
-      'email', 
+      'email',
       'verified',
       'status',
       'createdAt',
       'updatedAt',
       'address',
-      'city', 
+      'city',
       'country',
       'dateOfBirth',
       'gender',

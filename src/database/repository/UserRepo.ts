@@ -9,8 +9,6 @@ import KeystoreRepo from './KeystoreRepo';
 // import Keystore from '../model/Keystore';
 import prisma from '../prismaClient';
 import { User } from '@prisma/client';
-import { find } from 'lodash';
-import role from '../../helpers/role';
 
 async function exists(id: Types.ObjectId): Promise<boolean> {
   const user = await UserModel.exists({ _id: id, status: true });
@@ -270,32 +268,32 @@ async function findAll() {
 //         },
 //       },
 //     },
-    // select: {
-    //   id: true,
-    //   email: true,
-    //   name: true,
-    //   profilePicUrl: true,
-    //   verified: true,
-    //   status: true,
-    //   createdAt: true,
-    //   updatedAt: true,
-    //   address: true,
-    //   city: true,
-    //   country: true,
-    //   dateOfBirth: true,
-    //   gender: true,
-    //   firstName: true,
-    //   lastName: true,
-    //   roles: true,
-    //   // password field is omitted
-    // }
+// select: {
+//   id: true,
+//   email: true,
+//   name: true,
+//   profilePicUrl: true,
+//   verified: true,
+//   status: true,
+//   createdAt: true,
+//   updatedAt: true,
+//   address: true,
+//   city: true,
+//   country: true,
+//   dateOfBirth: true,
+//   gender: true,
+//   firstName: true,
+//   lastName: true,
+//   roles: true,
+//   // password field is omitted
+// }
 //   });
 // }
 
 async function findByRole(
-  roleCode: string, 
-  skip?: number, 
-  limit?: number, 
+  roleCode: string,
+  skip?: number,
+  limit?: number,
   status?: boolean,
   sortOrder: 'asc' | 'desc' = 'desc',
   search?: string,
@@ -305,7 +303,7 @@ async function findByRole(
       roles: {
         some: {
           code: roleCode,
-        }
+        },
       },
       ...(status !== undefined && { status }),
       ...(search && {
@@ -314,8 +312,8 @@ async function findByRole(
           { email: { contains: search, mode: 'insensitive' } },
           // { firstName: { contains: search, mode: 'insensitive' } },
           // { lastName: { contains: search, mode: 'insensitive' } }
-        ]
-      })
+        ],
+      }),
     },
     select: {
       id: true,
@@ -346,7 +344,7 @@ async function findByRole(
 }
 
 async function countByRole(
-  roleCode: string, 
+  roleCode: string,
   status?: boolean,
   search?: string,
 ) {
@@ -355,7 +353,7 @@ async function countByRole(
       roles: {
         some: {
           code: roleCode,
-        }
+        },
       },
       ...(status !== undefined && { status }),
       ...(search && {
@@ -364,9 +362,9 @@ async function countByRole(
           { email: { contains: search, mode: 'insensitive' } },
           // { firstName: { contains: search, mode: 'insensitive' } },
           // { lastName: { contains: search, mode: 'insensitive' } }
-        ]
-      })
-    }
+        ],
+      }),
+    },
   });
 }
 

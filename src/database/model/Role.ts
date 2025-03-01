@@ -5,7 +5,7 @@ export const COLLECTION_NAME = 'roles';
 
 export enum RoleCode {
   STAFF = 'STAFF',
-  TEACHER = 'TEACHER',
+  TUTOR = 'TUTOR',
   STUDENT = 'STUDENT',
 }
 

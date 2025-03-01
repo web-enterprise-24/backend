@@ -5,7 +5,7 @@ import signup from './access/signup';
 import login from './access/login';
 import logout from './access/logout';
 import token from './access/token';
-import credential from './access/credential';
+import credential from './access/tech';
 // import blog from './blog';
 // import blogs from './blogs';
 export enum Permission {
@@ -14,6 +14,7 @@ export enum Permission {
 import profile from './profile';
 import roles from './roles';
 import account from './access/account';
+import allocate from './tutoring/allocate';
 
 const router = express.Router();
 
@@ -31,7 +32,6 @@ router.use('/credential', credential);
 router.use('/profile', profile);
 router.use('/roles', roles);
 router.use('/account', account);
-// router.use('/blog', blog);
-// router.use('/blogs', blogs);
+router.use('/allocate', allocate);
 
 export default router;
