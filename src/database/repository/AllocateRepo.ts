@@ -1,26 +1,37 @@
 import prisma from '../prismaClient';
 import UserRepo from './UserRepo';
-import { BadRequestError } from '../../core/ApiError';
 import _ from 'lodash';
 import { RoleCode } from '../model/Role';
+import { BadRequestError } from '../../core/ApiError';
 
 async function getMyTutor(studentId: string) {
   const allocation = await prisma.allocation.findFirst({
     where: { studentId },
   });
-  if (!allocation) return null;
-  const tutor = await UserRepo.findById(allocation?.tutorId);
+  if (!allocation) {
+    console.error('Allocation not found');
+    return null;
+  }
+  const tutor = await UserRepo.findById(allocation?.tutorId ?? '');
+  if (!tutor) {
+    console.error('Tutor not found');
+    return null;
+  }
   return _.pick(tutor, ['id', 'name', 'email', 'profilePicUrl']);
 }
 
 async function allocateTutor(studentId: string, tutorId: string) {
   const getCurrentTutor = await getMyTutor(studentId);
-  if (getCurrentTutor)
+  if (getCurrentTutor) {
+    console.error('Student already have a tutor');
     return { success: false, message: 'Student already have a tutor' };
+  }
 
   const checkRole = await UserRepo.findPrivateProfileById(tutorId);
-  if (!checkRole?.roles.some((role) => role.code === RoleCode.TUTOR))
+  if (!checkRole?.roles.some((role) => role.code === RoleCode.TUTOR)) {
+    console.error('Tutor is not available');
     return { success: false, message: 'Tutor is not available' };
+  }
 
   const allocation = await prisma.allocation.create({
     data: { studentId, tutorId, startAt: new Date() },
@@ -49,9 +60,31 @@ async function changeTutor(studentId: string, tutorId: string) {
   });
   return allocation;
 }
+
+async function unallocateTutor(studentId: string) {
+  const myTutor = await getMyTutor(studentId);
+  if (!myTutor) throw new BadRequestError('Student does not have a tutor');
+  const allocation = await prisma.allocation.update({
+    where: { studentId },
+    data: {
+      tutorId: null,
+    },
+  });
+  const allocationHistory = await prisma.allocationHistory.create({
+    data: {
+      allocationId: allocation.id,
+      tutorId: myTutor.id,
+      startAt: allocation.startAt,
+      endAt: new Date(),
+    },
+  });
+  return { message: 'Unallocate tutor', allocationHistory };
+}
+
 export default {
   getMyTutor,
   allocateTutor,
+  unallocateTutor,
   changeTutor,
   allocateTutorWithManyStudents,
 };

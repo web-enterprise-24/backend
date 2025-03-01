@@ -14,6 +14,7 @@ import { defaultPassword } from '../../config';
 import { RoleCode } from '../../database/model/Role';
 import { User } from '@prisma/client';
 import RoleRepo from '../../database/repository/RoleRepo';
+import AllocateRepo from '../../database/repository/AllocateRepo';
 
 const router = express.Router();
 
@@ -26,31 +27,32 @@ router.get(
   asyncHandler(async (req: ProtectedRequest, res) => {
     const user = await UserRepo.findPrivateProfileById(req.user.id);
     if (!user) throw new BadRequestError('User not registered');
-
-    return new SuccessResponse(
-      'success',
-      _.pick(user, [
-        'id',
-        'name',
-        'profilePicUrl',
-        'email',
-        'dateOfBirth',
-        'gender',
-        'address',
-        'city',
-        'country',
-        'verified',
-        'status',
-        'createdAt',
-        'updatedAt',
-        'blogs',
-        'createdBlogs',
-        'updatedBlogs',
-        'keystores',
-        'roles',
-        'requiredPasswordChange',
-      ]),
-    ).send(res);
+    const myTutor = await AllocateRepo.getMyTutor(req.user.id);
+    const userData = _.pick(user, [
+      'id',
+      'name',
+      'profilePicUrl',
+      'email',
+      'dateOfBirth',
+      'gender',
+      'address',
+      'city',
+      'country',
+      'verified',
+      'status',
+      'createdAt',
+      'updatedAt',
+      'blogs',
+      'createdBlogs',
+      'updatedBlogs',
+      'keystores',
+      'roles',
+      'requiredPasswordChange',
+    ]);
+    return new SuccessResponse('success', {
+      ...userData,
+      myTutor,
+    }).send(res);
   }),
 );
 

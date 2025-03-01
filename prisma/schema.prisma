@@ -97,21 +97,23 @@ model ApiKey {
 model Allocation {
   id         String   @id @default(cuid())
   studentId  String   @unique
-  tutorId    String
+  tutorId    String?
   status     Boolean  @default(true)
   startAt    DateTime
   student User @relation(name: "StudentAllocations", fields: [studentId], references: [id])
-  tutor   User @relation(name: "TutorAllocations", fields: [tutorId], references: [id])
+  tutor   User? @relation(name: "TutorAllocations", fields: [tutorId], references: [id])
   history AllocationHistory[]
 }
 
 model AllocationHistory {
   id String @id @default(cuid())
   allocationId String
+  tutorId String
   allocation Allocation @relation(fields: [allocationId], references: [id])
-  status Boolean @default(true)
-  createdAt DateTime
-  updatedAt DateTime
+  startAt DateTime
+  endAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Message {
