@@ -31,7 +31,22 @@ async function exists(id: Types.ObjectId): Promise<boolean> {
 async function findPrivateProfileById(id: string) {
   return prisma.user.findUnique({
     where: { id },
-    include: { roles: true },
+    include: {
+      roles: true,
+      studentAllocations: {
+        select: {
+          tutor: {
+            select: {
+              name: true,
+              profilePicUrl: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
+    },
   });
 }
 
