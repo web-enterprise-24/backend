@@ -30,6 +30,11 @@ model User {
   updatedBlogs           Blog[]     @relation("UpdatedBy")
   keystores              Keystore[]
   roles                  Role[]     @relation("RoleToUser")
+  studentAllocations Allocation[] @relation(name: "StudentAllocations")
+  tutorAllocations   Allocation[] @relation(name: "TutorAllocations")
+  messages          Message[]    @relation(name: "Sender")
+  receivedMessages  Message[]    @relation(name: "Receiver")
+  documents         Document[]  @relation(name: "Documents")
 }
 
 model Blog {
@@ -87,4 +92,44 @@ model ApiKey {
   status      Boolean  @default(true)
   createdAt   DateTime
   updatedAt   DateTime
+}
+
+model Allocation {
+  id         String   @id @default(cuid())
+  studentId  String   @unique
+  tutorId    String
+  status     Boolean  @default(true)
+  startAt    DateTime
+  student User @relation(name: "StudentAllocations", fields: [studentId], references: [id])
+  tutor   User @relation(name: "TutorAllocations", fields: [tutorId], references: [id])
+  history AllocationHistory[]
+}
+
+model AllocationHistory {
+  id String @id @default(cuid())
+  allocationId String
+  allocation Allocation @relation(fields: [allocationId], references: [id])
+  status Boolean @default(true)
+  createdAt DateTime
+  updatedAt DateTime
+}
+
+model Message {
+  id String @id @default(cuid())
+  senderId String
+  receiverId String
+  content String
+  createdAt DateTime
+  updatedAt DateTime
+  sender User @relation(name: "Sender", fields: [senderId], references: [id])
+  receiver User @relation(name: "Receiver", fields: [receiverId], references: [id])
+}
+
+model Document {
+  id String @id @default(cuid())
+  studentId String
+  student User @relation(name: "Documents", fields: [studentId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  filePath String
 }

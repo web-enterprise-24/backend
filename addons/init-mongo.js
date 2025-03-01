@@ -6,6 +6,7 @@
 //     roles: [{ role: 'readWrite', db: dbName }],
 //   });
 
+const db = db.
 //   db.createCollection('api_keys');
 //   db.createCollection('roles');
 
