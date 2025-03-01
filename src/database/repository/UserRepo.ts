@@ -332,6 +332,19 @@ async function findByRole(
       firstName: true,
       lastName: true,
       roles: true,
+      studentAllocations: {
+        select: {
+          tutor: {
+            select: {
+              name: true,
+              profilePicUrl: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
       // password is omitted by not including it in select
     },
     orderBy: {
