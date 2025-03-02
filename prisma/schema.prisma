@@ -102,14 +102,11 @@ model Allocation {
   startAt    DateTime
   student User @relation(name: "StudentAllocations", fields: [studentId], references: [id])
   tutor   User? @relation(name: "TutorAllocations", fields: [tutorId], references: [id])
-  history AllocationHistory[]
 }
 
 model AllocationHistory {
   id String @id @default(cuid())
-  allocationId String
   tutorId String
-  allocation Allocation @relation(fields: [allocationId], references: [id])
   startAt DateTime
   endAt DateTime
   createdAt DateTime @default(now())

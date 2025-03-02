@@ -71,7 +71,6 @@ async function unallocateTutor(studentId: string) {
   });
   const allocationHistory = await prisma.allocationHistory.create({
     data: {
-      allocationId: allocation.id,
       tutorId: myTutor.id,
       startAt: allocation.startAt,
       endAt: new Date(),
