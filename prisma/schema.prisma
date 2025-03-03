@@ -130,5 +130,9 @@ model Document {
   student User @relation(name: "Documents", fields: [studentId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  filePath String
+  fileName    String
+  fileUrl     String   // Cloudinary URL
+  fileType    String   // MIME type
+  fileSize    Int      // in bytes
+  status      Boolean  @default(true)
 }
