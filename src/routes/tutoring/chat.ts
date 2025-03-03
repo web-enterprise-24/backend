@@ -12,7 +12,10 @@ router.use(authentication);
 router.get(
   '/',
   asyncHandler(async (req: ProtectedRequest, res) => {
-    const messages = await MessageRepo.getMessages(req.user.id);
+    const messages = await MessageRepo.getMessages(
+      req.user.id,
+      req.query.selectedUserId as string,
+    );
     new SuccessResponse('Messages fetched', {
       messages,
     }).send(res);
@@ -25,6 +28,15 @@ router.post(
     await MessageRepo.create(req.user.id, receiverId, content);
     new SuccessResponse('Message sent', {
       message: 'Message sent',
+    }).send(res);
+  }),
+);
+router.get(
+  '/userChat',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const userChats = await MessageRepo.getUserChats(req.user.id);
+    new SuccessResponse('User chats fetched', {
+      userChats,
     }).send(res);
   }),
 );

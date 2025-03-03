@@ -12,11 +12,10 @@ import {
 } from './core/ApiError';
 import routes from './routes';
 
+const app = express();
 process.on('uncaughtException', (e) => {
   Logger.error(e);
 });
-
-const app = express();
 
 app.use(express.json({ limit: '10mb' }));
 app.use(
