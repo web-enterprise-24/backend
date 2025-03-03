@@ -7,7 +7,7 @@ import logout from './access/logout';
 import token from './access/token';
 import credential from './access/credential';
 // import blog from './blog';
-// import blogs from './blogs'; /test
+// import blogs from './blogs';
 export enum Permission {
   GENERAL = 'GENERAL',
 }
