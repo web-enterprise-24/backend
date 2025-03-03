@@ -60,6 +60,7 @@ router.get(
     const roleCode = req.query.role as RoleCode;
     const sortOrder = (req.query.sort as 'asc' | 'desc') || 'desc';
     const search = (req.query.search as string) || '';
+    const filter = req.query.filter as string;
 
     // Get status filter from query params
     let status: boolean | undefined;
@@ -69,8 +70,16 @@ router.get(
 
     // Get total count and paginated users
     const [users, total] = await Promise.all([
-      UserRepo.findByRole(roleCode, skip, limit, status, sortOrder, search),
-      UserRepo.countByRole(roleCode, status, search),
+      UserRepo.findByRole(
+        roleCode,
+        skip,
+        limit,
+        status,
+        sortOrder,
+        search,
+        filter,
+      ),
+      UserRepo.countByRole(roleCode, status, search, filter),
     ]);
 
     // Calculate total pages

@@ -1,6 +1,5 @@
 import Joi from 'joi';
 import { JoiAuthBearer } from '../../helpers/validator';
-import { stat } from 'fs';
 
 export default {
   credential: Joi.object().keys({
