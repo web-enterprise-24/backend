@@ -1,6 +1,6 @@
 // const cloudinary = require("cloudinary").v2;
-          
-// cloudinary.config({ 
+
+// cloudinary.config({
 //   cloud_name: process.env.CLOUD_NAME,
 //   api_key: process.env.API_KEY,
 //   api_secret: process.env.API_SECRET
@@ -9,7 +9,7 @@
 // const uploadFile = async(filePath) => {
 
 //     try {
-        
+
 //         const result = await cloudinary.uploader.upload(filePath);
 //         console.log(result)
 //         return result;
@@ -28,10 +28,10 @@ import { BadRequestError } from '../core/ApiError';
 import fs from 'fs';
 
 // Configure cloudinary
-cloudinary.config({ 
+cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET
+  api_secret: process.env.API_SECRET,
 });
 
 // interface CloudinaryResponse {
@@ -48,7 +48,9 @@ interface CloudinaryResponse {
   resource_type: string;
 }
 
-export const uploadFile = async (filePath: string): Promise<CloudinaryResponse> => {
+export const uploadFile = async (
+  filePath: string,
+): Promise<CloudinaryResponse> => {
   try {
     // Check if file exists
     if (!fs.existsSync(filePath)) {
@@ -66,13 +68,14 @@ export const uploadFile = async (filePath: string): Promise<CloudinaryResponse> 
     fs.unlinkSync(filePath);
 
     return result;
-
   } catch (error: any) {
     // Clean up on error
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
-    
-    throw new BadRequestError(error.message || 'Error uploading file to cloudinary');
+
+    throw new BadRequestError(
+      error.message || 'Error uploading file to cloudinary',
+    );
   }
 };

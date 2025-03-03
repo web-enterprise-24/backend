@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import multer from 'multer';
 import authentication from '../../auth/authentication';
 import asyncHandler from '../../helpers/asyncHandler';
@@ -7,7 +7,6 @@ import { BadRequestError } from '../../core/ApiError';
 import { StoreModel } from '../../database/model/Store';
 import { SuccessResponse } from '../../core/ApiResponse';
 import { uploadFile } from '../../helpers/uploadFile';
-
 
 const router = express.Router();
 
@@ -18,21 +17,34 @@ router.use(authentication);
 const storage = multer.diskStorage({});
 
 // File filter
-const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+const fileFilter = (
+  req: Express.Request,
+  file: Express.Multer.File,
+  cb: multer.FileFilterCallback,
+) => {
+  const allowedMimes = [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'application/pdf',
+  ];
   if (allowedMimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new BadRequestError('Invalid file type. Only JPEG, PNG, GIF and PDF are allowed'));
+    cb(
+      new BadRequestError(
+        'Invalid file type. Only JPEG, PNG, GIF and PDF are allowed',
+      ),
+    );
   }
 };
 
 const upload = multer({
   storage,
   limits: {
-    fileSize: 500000 // 500KB limit
+    fileSize: 500000, // 500KB limit
   },
-  fileFilter
+  fileFilter,
 });
 
 // Controller function
@@ -53,14 +65,14 @@ router.post(
         fileUrl: uploadResult.secure_url,
         fileName: req.file.originalname,
         fileType: req.file.mimetype,
-        uploadDate: new Date()
+        uploadDate: new Date(),
       });
 
       return new SuccessResponse('File uploaded successfully', store).send(res);
     } catch (error) {
       throw new BadRequestError('Error processing file upload');
     }
-  })
+  }),
 );
 
 export default router;

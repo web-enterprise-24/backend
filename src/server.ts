@@ -1,8 +1,8 @@
 import Logger from './core/Logger';
 import { port } from './config';
-import app from './app';
+import { server } from './helpers/socket';
 
-app
+server
   .listen(port, () => {
     Logger.info(`server running on port : ${port}`);
   })
