@@ -113,7 +113,7 @@ router.put(
     if (req.body.country) user.country = req.body.country;
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { roles, ...rest } = user;
+    const { roles, studentAllocations, ...rest } = user;
     await UserRepo.updateInfo(rest);
 
     const data = _.pick(user, [
