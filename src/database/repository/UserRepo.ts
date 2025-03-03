@@ -429,6 +429,18 @@ async function countByRole(
   });
 }
 
+async function findManyByIds(ids: string[]) {
+  return await prisma.user.findMany({
+    where: { id: { in: ids } },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      profilePicUrl: true,
+    },
+  });
+}
+
 export default {
   exists,
   findPrivateProfileById,
@@ -443,4 +455,5 @@ export default {
   findAll,
   findByRole,
   countByRole,
+  findManyByIds,
 };

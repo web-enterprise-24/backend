@@ -21,6 +21,20 @@ async function getMyTutor(studentId: string) {
   return _.pick(tutor, ['id', 'name', 'email', 'profilePicUrl']);
 }
 
+async function getMyStudent(tutorId: string) {
+  const allocation = await prisma.allocation.findMany({
+    where: { tutorId },
+  });
+  if (!allocation) {
+    console.error('Allocation not found');
+    return null;
+  }
+  const students = await UserRepo.findManyByIds(
+    allocation.map((item) => item.studentId),
+  );
+  return students;
+}
+
 async function allocateTutor(studentId: string, tutorId: string) {
   const getCurrentTutor = await getMyTutor(studentId);
   if (getCurrentTutor) {
@@ -81,6 +95,7 @@ async function unallocateTutor(studentId: string) {
 
 export default {
   getMyTutor,
+  getMyStudent,
   allocateTutor,
   unallocateTutor,
   changeTutor,
