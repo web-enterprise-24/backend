@@ -10,6 +10,7 @@ import KeystoreRepo from './KeystoreRepo';
 import prisma from '../prismaClient';
 import { User } from '@prisma/client';
 import { AllocateStatus } from '../model/Allocate';
+import { RoleCode } from '../model/Role';
 
 async function exists(id: Types.ObjectId): Promise<boolean> {
   const user = await UserModel.exists({ _id: id, status: true });
@@ -380,6 +381,13 @@ async function findByRole(
   } else if (filter === AllocateStatus.UNALLOCATED) {
     result = result.filter((user) => {
       return user.studentAllocations.length === 0;
+    });
+  }
+  if (roleCode === RoleCode.TUTOR || roleCode === RoleCode.STAFF) {
+    result = result.map((user) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { studentAllocations, ...rest } = user;
+      return rest as any;
     });
   }
   return result;
