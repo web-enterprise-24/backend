@@ -1,27 +1,31 @@
 import express from 'express';
 import { ProtectedRequest } from '../../types/app-request';
-import UserRepo from '../../database/repository/UserRepo';
-import { BadRequestError } from '../../core/ApiError';
-import validator from '../../helpers/validator';
-import schema from './schema';
 import asyncHandler from '../../helpers/asyncHandler';
 import { SuccessResponse } from '../../core/ApiResponse';
-import _ from 'lodash';
+import MessageRepo from '../../database/repository/MessageRepo';
+import authentication from '../../auth/authentication';
 
 const router = express.Router();
 
+router.use(authentication);
+
 router.get(
   '/',
-  validator(schema.getChat),
   asyncHandler(async (req: ProtectedRequest, res) => {
-    console.log('🚀 ~ asyncHandler ~ res:', res);
-    const user = await UserRepo.findByEmail(req.user.email);
-    if (!user) throw new BadRequestError('User do not exists');
-    new SuccessResponse(
-      'User password updated',
-      _.pick(user, ['id', 'name', 'email']),
-    ).send(res);
+    const messages = await MessageRepo.getMessages(req.user.id);
+    new SuccessResponse('Messages fetched', {
+      messages,
+    }).send(res);
   }),
 );
-
+router.post(
+  '/',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const { receiverId, content } = req.body;
+    await MessageRepo.create(req.user.id, receiverId, content);
+    new SuccessResponse('Message sent', {
+      message: 'Message sent',
+    }).send(res);
+  }),
+);
 export default router;
