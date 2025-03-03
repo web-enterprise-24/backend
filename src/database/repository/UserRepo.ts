@@ -9,6 +9,7 @@ import KeystoreRepo from './KeystoreRepo';
 // import Keystore from '../model/Keystore';
 import prisma from '../prismaClient';
 import { User } from '@prisma/client';
+import { AllocateStatus } from '../model/Allocate';
 
 async function exists(id: Types.ObjectId): Promise<boolean> {
   const user = await UserModel.exists({ _id: id, status: true });
@@ -312,8 +313,10 @@ async function findByRole(
   status?: boolean,
   sortOrder: 'asc' | 'desc' = 'desc',
   search?: string,
+  filter?: string,
 ) {
-  return await prisma.user.findMany({
+  console.log('🚀 ~ filter:', filter);
+  let result = await prisma.user.findMany({
     where: {
       roles: {
         some: {
@@ -369,12 +372,24 @@ async function findByRole(
     skip,
     take: limit,
   });
+  if (filter === AllocateStatus.ALLOCATED) {
+    console.log('🚀 ~ filter:', filter);
+    result = result.filter((user) => {
+      return user.studentAllocations.length > 0;
+    });
+  } else if (filter === AllocateStatus.UNALLOCATED) {
+    result = result.filter((user) => {
+      return user.studentAllocations.length === 0;
+    });
+  }
+  return result;
 }
 
 async function countByRole(
   roleCode: string,
   status?: boolean,
   search?: string,
+  filter?: string,
 ) {
   return await prisma.user.count({
     where: {
@@ -383,6 +398,16 @@ async function countByRole(
           code: roleCode,
         },
       },
+      ...(filter === AllocateStatus.ALLOCATED && {
+        studentAllocations: {
+          some: {},
+        },
+      }),
+      ...(filter === AllocateStatus.UNALLOCATED && {
+        studentAllocations: {
+          none: {},
+        },
+      }),
       ...(status !== undefined && { status }),
       ...(search && {
         OR: [
