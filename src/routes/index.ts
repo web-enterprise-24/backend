@@ -5,7 +5,7 @@ import signup from './access/signup';
 import login from './access/login';
 import logout from './access/logout';
 import token from './access/token';
-import credential from './access/tech';
+import credential from './access/credential';
 // import blog from './blog';
 // import blogs from './blogs';
 export enum Permission {
