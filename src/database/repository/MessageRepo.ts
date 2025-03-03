@@ -1,6 +1,9 @@
+import { User } from '@prisma/client';
 import { getReceiverSocketId, io } from '../../helpers/socket';
+import { RoleCode } from '../model/Role';
 import prisma from '../prismaClient';
 import AllocateRepo from './AllocateRepo';
+import UserRepo from './UserRepo';
 
 async function getMessages(myId: string, selectedUserId: string) {
   const messages = await prisma.message.findMany({
@@ -47,10 +50,44 @@ async function create(senderId: string, receiverId: string, content: string) {
   return newMessage;
 }
 
-async function getUserChats(userId: string) {
-  const getMyTutor = await AllocateRepo.getMyTutor(userId);
+async function getUserChats(userId: string, roleCode: string) {
+  console.log('🚀 ~ getUserChats ~ userId:', userId);
+  const listChats: User[] = [];
+  const previousChats = await prisma.message.findMany({
+    where: {
+      OR: [{ senderId: userId }, { receiverId: userId }],
+    },
+  });
+  for (const chat of previousChats) {
+    if (chat.senderId === userId) {
+      const receiver = await UserRepo.findById(chat.receiverId);
+      // check exist in listChats
+      if (!listChats.some((item) => item?.id === receiver?.id)) {
+        listChats.push(receiver as User);
+      }
+    } else {
+      const sender = await UserRepo.findById(chat.senderId);
+      // check exist in listChats
+      if (!listChats.some((item) => item?.id === sender?.id)) {
+        listChats.push(sender as User);
+      }
+    }
+  }
+  console.log('🚀 ~ getUserChats ~ previousChats:', previousChats);
 
-  return [getMyTutor];
+  if (roleCode === RoleCode.STUDENT) {
+    const getMyTutor = await AllocateRepo.getMyTutor(userId);
+    if (getMyTutor) {
+      listChats.push(getMyTutor as User);
+    }
+  } else if (roleCode === RoleCode.TUTOR) {
+    const getMyStudent = await AllocateRepo.getMyStudent(userId);
+    if (getMyStudent && getMyStudent?.length > 0) {
+      listChats.push(...(getMyStudent as User[]));
+    }
+  }
+
+  return listChats;
 }
 
 export default {
