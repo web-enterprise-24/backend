@@ -15,7 +15,7 @@ router.use(authentication);
 router.post('/', 
   upload.single('file'), 
   asyncHandler(async (req: ProtectedRequest, res) => {
-  try {
+  // try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
@@ -25,6 +25,7 @@ router.post('/',
       resource_type: 'auto', // Automatically detect file type
       folder: 'user_uploads',
       public_id: req.file.originalname, // Use original file name as public_id
+      // pulic_id: req.user.id + '_' + req.file.originalname,
     });
 
     // Save file record to database
@@ -45,10 +46,10 @@ router.post('/',
       message: 'File uploaded successfully',
       file: fileRecord,
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Something went wrong' });
-  }
+  // } catch (error) {
+  //   console.error(error);
+  //   res.status(500).json({ error: 'Something went wrong' });
+  // }
 }));
 
 export default router;
