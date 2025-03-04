@@ -23,6 +23,7 @@ export async function getUserData(user: User) {
     'address',
     'city',
     'country',
+    'status',
   ]);
   return data;
 }
