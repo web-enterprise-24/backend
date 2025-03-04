@@ -35,7 +35,7 @@ router.use('/profile', profile);
 router.use('/roles', roles);
 router.use('/account', account);
 router.use('/allocate', allocate);
-router.use('/tutoring', upload);
+router.use('/upload', upload);
 router.use('/chat', chat);
 
 export default router;

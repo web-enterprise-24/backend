@@ -1,78 +1,54 @@
 import express from 'express';
 import multer from 'multer';
+import { unlink } from 'fs/promises';
+import cloudinary from '../../helpers/cloudinary';
+import prisma from '../../database/prismaClient';
 import authentication from '../../auth/authentication';
 import asyncHandler from '../../helpers/asyncHandler';
 import { ProtectedRequest } from '../../types/app-request';
-import { BadRequestError } from '../../core/ApiError';
-import { StoreModel } from '../../database/model/Store';
-import { SuccessResponse } from '../../core/ApiResponse';
-import { uploadFile } from '../../helpers/uploadFile';
 
 const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
 
-// Use authentication middleware
 router.use(authentication);
 
-// Multer configuration
-const storage = multer.diskStorage({});
-
-// File filter
-const fileFilter = (
-  req: Express.Request,
-  file: Express.Multer.File,
-  cb: multer.FileFilterCallback,
-) => {
-  const allowedMimes = [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'application/pdf',
-  ];
-  if (allowedMimes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(
-      new BadRequestError(
-        'Invalid file type. Only JPEG, PNG, GIF and PDF are allowed',
-      ),
-    );
-  }
-};
-
-const upload = multer({
-  storage,
-  limits: {
-    fileSize: 500000, // 500KB limit
-  },
-  fileFilter,
-});
-
-// Controller function
-router.post(
-  '/upload',
-  upload.single('file'),
+router.post('/', 
+  upload.single('file'), 
   asyncHandler(async (req: ProtectedRequest, res) => {
+  try {
     if (!req.file) {
-      throw new BadRequestError('No file uploaded');
+      return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    try {
-      // Upload file to cloudinary
-      const uploadResult = await uploadFile(req.file.path);
+    // Upload file to cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      resource_type: 'auto', // Automatically detect file type
+      folder: 'user_uploads',
+      public_id: req.file.originalname, // Use original file name as public_id
+    });
 
-      // Create new store record
-      const store = await StoreModel.create({
-        fileUrl: uploadResult.secure_url,
+    // Save file record to database
+    const fileRecord = await prisma.document.create({
+      data: {
+        studentId: req.user.id,
+        fileUrl: result.secure_url,
         fileName: req.file.originalname,
         fileType: req.file.mimetype,
-        uploadDate: new Date(),
-      });
+        fileSize: req.file.size,
+        createdAt: new Date(),
+      }
+    });
 
-      return new SuccessResponse('File uploaded successfully', store).send(res);
-    } catch (error) {
-      throw new BadRequestError('Error processing file upload');
-    }
-  }),
-);
+    await unlink(req.file.path); // Remove temporary file
+
+    res.status(200).json({
+      message: 'File uploaded successfully',
+      file: fileRecord,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
+}));
 
 export default router;
