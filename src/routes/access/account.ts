@@ -54,7 +54,7 @@ router.get(
 
     // Get pagination parameters from query
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
+    const limit = Number(req.query.limit) || 5;
     const skip = (page - 1) * limit;
 
     const roleCode = req.query.role as RoleCode;
@@ -85,17 +85,18 @@ router.get(
     // Calculate total pages
     const totalPages = Math.ceil(total / limit);
 
+    console.log('Query Params:', { roleCode, skip, limit, status, sortOrder, search, filter });
     // Build pagination links
     // const baseUrl = `${req.protocol}://${req.get('host')}${req.baseUrl}${req.path}`;
     const baseUrl = `https://${req.get('host')}${req.baseUrl}${req.path}`;
     const pagination = {
       next:
         page < totalPages
-          ? `${baseUrl}?page=${page + 1}&limit=${limit}&role=${roleCode}&status=${status}&sort=${sortOrder}&search=${search}`
+          ? `${baseUrl}?page=${page + 1}&limit=${limit}&role=${roleCode}&status=${status}&sort=${sortOrder}&search=${search}&filter=${filter}`
           : null,
       previous:
         page > 1
-          ? `${baseUrl}?page=${page - 1}&limit=${limit}&role=${roleCode}&status=${status}&sort=${sortOrder}&search=${search}`
+          ? `${baseUrl}?page=${page - 1}&limit=${limit}&role=${roleCode}&status=${status}&sort=${sortOrder}&search=${search}&filter=${filter}`
           : null,
     };
 
