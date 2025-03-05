@@ -27,9 +27,9 @@ router.post(
   '/',
   asyncHandler(async (req: ProtectedRequest, res) => {
     const { receiverId, content } = req.body;
-    await MessageRepo.create(req.user.id, receiverId, content);
+    const message = await MessageRepo.create(req.user.id, receiverId, content);
     new SuccessResponse('Message sent', {
-      message: 'Message sent',
+      message,
     }).send(res);
   }),
 );
