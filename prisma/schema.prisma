@@ -134,5 +134,6 @@ model Document {
   fileUrl     String   // Cloudinary URL
   fileType    String   // MIME type
   fileSize    Int      // in bytes
+  thumbnailUrl String? // Cloudinary URL
   status      Boolean  @default(true)
 }
