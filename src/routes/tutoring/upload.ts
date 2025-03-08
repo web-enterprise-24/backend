@@ -44,6 +44,19 @@ router.post(
 //   })
 // );
 
+// router.get(
+//   "/myDocuments",
+//   asyncHandler(async (req: ProtectedRequest, res) => {
+//     const page = Number(req.query.page) || 1;
+//     const limit = Number(req.query.limit) || 5;
+//     const baseUrl = `https://${req.get("host")}${req.baseUrl}/myDocuments`;
+
+//     const documents = await DocumentRepo.getMyDocuments(req.user.id, page, limit, baseUrl);
+
+//     new SuccessResponse("My documents", documents).send(res);
+//   })
+// );
+
 router.get(
   "/myDocuments",
   asyncHandler(async (req: ProtectedRequest, res) => {
@@ -53,9 +66,21 @@ router.get(
 
     const documents = await DocumentRepo.getMyDocuments(req.user.id, page, limit, baseUrl);
 
+    if (documents.totalDocuments === 0) {
+      return new SuccessResponse("No documents found", {
+        totalPages: 0,
+        totalDocuments: 0,
+        result: 0,
+        documents: [],
+        nextPage: null,
+        previousPage: null,
+      }).send(res);
+    }
+
     new SuccessResponse("My documents", documents).send(res);
   })
 );
+
 
 router.get(
   "/myStudentsDocuments",
