@@ -77,13 +77,19 @@ async function getUserChats(userId: string, roleCode: string) {
 
   if (roleCode === RoleCode.STUDENT) {
     const getMyTutor = await AllocateRepo.getMyTutor(userId);
-    if (getMyTutor) {
+    if (getMyTutor && !listChats.some((item) => item?.id === getMyTutor?.id)) {
       listChats.push(getMyTutor as User);
     }
   } else if (roleCode === RoleCode.TUTOR) {
-    const getMyStudent = await AllocateRepo.getMyStudent(userId);
-    if (getMyStudent && getMyStudent?.length > 0) {
-      listChats.push(...(getMyStudent as User[]));
+    const getMyStudents = await AllocateRepo.getMyStudent(userId);
+    if (getMyStudents && getMyStudents?.length > 0) {
+      const newStudents = getMyStudents.filter(
+        (student) => !listChats.some((item) => item.id === student.id),
+      );
+
+      if (newStudents.length > 0) {
+        listChats.push(...(newStudents as User[]));
+      }
     }
   }
 
