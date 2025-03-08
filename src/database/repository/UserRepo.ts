@@ -441,6 +441,32 @@ async function findManyByIds(ids: string[]) {
   });
 }
 
+async function findPublicUser(currentUserId: string, searchString: string) {
+  return await prisma.user.findMany({
+    where: {
+      id: { not: currentUserId },
+      ...(searchString && {
+        OR: [
+          { name: { contains: searchString, mode: 'insensitive' } },
+          { email: { contains: searchString, mode: 'insensitive' } },
+          { firstName: { contains: searchString, mode: 'insensitive' } },
+          { lastName: { contains: searchString, mode: 'insensitive' } },
+        ],
+      }),
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      profilePicUrl: true,
+      firstName: true,
+      lastName: true,
+      roles: true,
+    },
+    take: 10,
+  });
+}
+
 export default {
   exists,
   findPrivateProfileById,
@@ -456,4 +482,5 @@ export default {
   findByRole,
   countByRole,
   findManyByIds,
+  findPublicUser,
 };
