@@ -213,6 +213,64 @@ async function getMyDocuments(
   };
 }
 
+// async function getMyStudentsDocuments(
+//   tutorId: string, 
+//   page: number, 
+//   limit: number, 
+//   baseUrl: string
+// ): Promise<{ documents: Document[], totalPages: number, totalDocuments: number, result: number, nextPage?: string, previousPage?: string }> {
+//   // Check if the tutor has any students
+//   const studentsAssigned = await prisma.allocation.findFirst({ where: { tutorId } });
+
+//   if (!studentsAssigned) {
+//     throw new NotFoundError("No students assigned to this tutor");
+//   }
+
+//   const totalDocuments = await prisma.document.count({
+//     where: {
+//       student: {
+//         studentAllocations: { some: { tutorId } },
+//       },
+//     },
+//   });
+
+//   if (totalDocuments === 0) {
+//     throw new NotFoundError("No documents found for students assigned to this tutor");
+//   }
+
+//   const totalPages = Math.ceil(totalDocuments / limit);
+
+//   // Get a list of student documents that the tutor is teaching
+//   const documents = await prisma.document.findMany({
+//     where: {
+//       student: {
+//         studentAllocations: { some: { tutorId } },
+//       },
+//     },
+//     orderBy: { createdAt: "desc" },
+//     skip: (page - 1) * limit,
+//     take: limit,
+//     include: {
+//       student: {
+//         select: { email: true, name: true, profilePicUrl: true, status: true },
+//       },
+//     },
+//   });
+
+//   // Create next & previous page links
+//   const nextPage = page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : undefined;
+//   const previousPage = page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : undefined;
+
+//   return {
+//     result: documents.length,
+//     totalPages,
+//     totalDocuments,
+//     documents,
+//     nextPage,
+//     previousPage,
+//   };
+// }
+
 async function getMyStudentsDocuments(
   tutorId: string, 
   page: number, 
@@ -223,9 +281,17 @@ async function getMyStudentsDocuments(
   const studentsAssigned = await prisma.allocation.findFirst({ where: { tutorId } });
 
   if (!studentsAssigned) {
-    throw new NotFoundError("No students assigned to this tutor");
+    return {
+      result: 0,
+      totalPages: 0,
+      totalDocuments: 0,
+      documents: [],
+      nextPage: undefined,
+      previousPage: undefined,
+    };
   }
 
+  // Count total of documents
   const totalDocuments = await prisma.document.count({
     where: {
       student: {
@@ -234,11 +300,7 @@ async function getMyStudentsDocuments(
     },
   });
 
-  if (totalDocuments === 0) {
-    throw new NotFoundError("No documents found for students assigned to this tutor");
-  }
-
-  const totalPages = Math.ceil(totalDocuments / limit);
+  const totalPages = totalDocuments > 0 ? Math.ceil(totalDocuments / limit) : 0;
 
   // Get a list of student documents that the tutor is teaching
   const documents = await prisma.document.findMany({
