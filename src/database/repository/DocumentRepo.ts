@@ -82,64 +82,164 @@ export const uploadFile = async (file: Express.Multer.File, userId: string) => {
   }
 };
 
-async function getMyDocuments(studentId: string): Promise<Document[]> {
-  // Check if studentId is valid
-  if (!studentId || typeof studentId !== "string") {
-    throw new BadRequestError("Invalid student ID");
-  }
+// async function getMyDocuments(studentId: string): Promise<Document[]> {
+//   try {
+//     // Get all documents for the student
+//     const documents = await prisma.document.findMany({
+//       where: { studentId },
+//       orderBy: { createdAt: "desc" },
+//     });
 
-  // Check if studentId exists
-  const studentExists = await prisma.user.findUnique({
-    where: { id: studentId },
-  });
+//     // Check if documents exist
+//     if (documents.length === 0) {
+//       throw new NotFoundError("No documents found for this student");
+//     }
 
-  if (!studentExists) {
-    throw new NotFoundError("Student not found");
-  }
+//     return documents;
+//   } catch (error) {
+//     console.error("Error fetching documents:", error);
+//     throw new InternalError("Something went wrong while fetching documents");
+//   }
+// }
 
+// async function getMyStudentsDocuments(tutorId: string): Promise<Document[]> {
+//   // Check if the tutor has any students
+//   const studentsAssigned = await prisma.allocation.findFirst({
+//     where: { tutorId },
+//   });
+
+//   if (!studentsAssigned) {
+//     throw new NotFoundError("No students assigned to this tutor");
+//   }
+
+//   // Get a list of student documents that the tutor is teaching
+//   const documents = await prisma.document.findMany({
+//     where: {
+//       student: {
+//         studentAllocations: {
+//           some: { tutorId },
+//         },
+//       },
+//     },
+//     orderBy: { createdAt: "desc" },
+//     include: {
+//       student: {
+//         select: {
+//           email: true,
+//           name: true,
+//           profilePicUrl: true,
+//           status: true,
+//         },
+//       },
+//     },
+//   });
+
+//   if (documents.length === 0) {
+//     throw new NotFoundError("No documents found for students assigned to this tutor");
+//   }
+
+//   return documents;
+// }
+
+async function getMyDocuments(
+  studentId: string, 
+  page: number, 
+  limit: number, 
+  baseUrl: string
+): Promise<{ documents: Document[], totalPages: number, totalDocuments: number, result: number, nextPage?: string, previousPage?: string }> {
   try {
+    const totalDocuments = await prisma.document.count({ where: { studentId } });
+
+    // Check if documents exist
+    if (totalDocuments === 0) {
+      throw new NotFoundError("No documents found for this student");
+    }
+
+    const totalPages = Math.ceil(totalDocuments / limit);
     // Get all documents for the student
     const documents = await prisma.document.findMany({
       where: { studentId },
       orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
     });
 
-    // Check if documents exist
-    if (documents.length === 0) {
-      throw new NotFoundError("No documents found for this student");
-    }
+    // Create next & previous page links
+    const nextPage = page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : undefined;
+    const previousPage = page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : undefined;
 
-    return documents;
+    return {
+      result: documents.length,
+      totalPages,
+      totalDocuments,
+      documents,
+      nextPage,
+      previousPage,
+    };
   } catch (error) {
     console.error("Error fetching documents:", error);
     throw new InternalError("Something went wrong while fetching documents");
   }
 }
 
-async function getMyStudentsDocuments(tutorId: string): Promise<Document[]> {
-  return await prisma.document.findMany({
+async function getMyStudentsDocuments(
+  tutorId: string, 
+  page: number, 
+  limit: number, 
+  baseUrl: string
+): Promise<{ documents: Document[], totalPages: number, totalDocuments: number, result: number, nextPage?: string, previousPage?: string }> {
+  // Check if the tutor has any students
+  const studentsAssigned = await prisma.allocation.findFirst({ where: { tutorId } });
+
+  if (!studentsAssigned) {
+    throw new NotFoundError("No students assigned to this tutor");
+  }
+
+  const totalDocuments = await prisma.document.count({
     where: {
       student: {
-        studentAllocations: {
-          some: {tutorId},
-        },
+        studentAllocations: { some: { tutorId } },
       },
     },
-    orderBy: {
-      createdAt: 'desc',
+  });
+
+  if (totalDocuments === 0) {
+    throw new NotFoundError("No documents found for students assigned to this tutor");
+  }
+
+  const totalPages = Math.ceil(totalDocuments / limit);
+
+  // Get a list of student documents that the tutor is teaching
+  const documents = await prisma.document.findMany({
+    where: {
+      student: {
+        studentAllocations: { some: { tutorId } },
+      },
     },
+    orderBy: { createdAt: "desc" },
+    skip: (page - 1) * limit,
+    take: limit,
     include: {
       student: {
-        select: {
-          email: true,
-          name: true,
-          profilePicUrl: true,
-          status: true,
-        },
-      }
-    }
+        select: { email: true, name: true, profilePicUrl: true, status: true },
+      },
+    },
   });
+
+  // Create next & previous page links
+  const nextPage = page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : undefined;
+  const previousPage = page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : undefined;
+
+  return {
+    result: documents.length,
+    totalPages,
+    totalDocuments,
+    documents,
+    nextPage,
+    previousPage,
+  };
 }
+
 
 // Create thumbnail for pdf document
 // const generatePdfThumbnail = async (filePath: string): Promise<string> => {
