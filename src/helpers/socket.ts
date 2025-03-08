@@ -8,6 +8,7 @@ const io = new Server(server, {
     origin: [
       'http://localhost:5173',
       'https://e-tutoring-font-end.onrender.com',
+      'https://e-tutoring.medev.me',
     ],
   },
 });
