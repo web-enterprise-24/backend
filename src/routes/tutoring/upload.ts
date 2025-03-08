@@ -81,7 +81,6 @@ router.get(
   })
 );
 
-
 router.get(
   "/myStudentsDocuments",
   asyncHandler(async (req: ProtectedRequest, res) => {
@@ -91,9 +90,21 @@ router.get(
 
     const documents = await DocumentRepo.getMyStudentsDocuments(req.user.id, page, limit, baseUrl);
 
+    if (documents.totalDocuments === 0) {
+      return new SuccessResponse("No documents found for students assigned to this tutor", {
+        totalPages: 0,
+        totalDocuments: 0,
+        result: 0,
+        documents: [],
+        nextPage: null,
+        previousPage: null,
+      }).send(res);
+    }
+
     new SuccessResponse("My students documents", documents).send(res);
   })
 );
+
 
 
 export default router;
