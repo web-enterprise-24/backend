@@ -26,8 +26,6 @@ model User {
   firstName              String?
   lastName               String?
   blogs                  Blog[]     @relation("UserBlogs")
-  createdBlogs           Blog[]     @relation("CreatedBy")
-  updatedBlogs           Blog[]     @relation("UpdatedBy")
   keystores              Keystore[]
   roles                  Role[]     @relation("RoleToUser")
   studentAllocations Allocation[] @relation(name: "StudentAllocations")
@@ -35,18 +33,20 @@ model User {
   messages          Message[]    @relation(name: "Sender")
   receivedMessages  Message[]    @relation(name: "Receiver")
   documents         Document[]  @relation(name: "Documents")
+  likes             Like[]
+  comments          Comment[]   @relation(name: "UserComments")
 }
 
 model Blog {
   id          String    @id @default(cuid())
   title       String
   description String
-  text        String?
-  draftText   String
+  draftText   String?
+  contentRichText        String?
   tags        String[]
   authorId    String
   imgUrl      String?
-  blogUrl     String
+  blogUrl     String?
   likes       Int?
   score       Float     @default(0.01)
   isSubmitted Boolean   @default(false)
@@ -54,13 +54,10 @@ model Blog {
   isPublished Boolean   @default(false)
   status      Boolean   @default(true)
   publishedAt DateTime?
-  createdById String
-  updatedById String
-  createdAt   DateTime
-  updatedAt   DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   author      User      @relation("UserBlogs", fields: [authorId], references: [id])
-  createdBy   User      @relation("CreatedBy", fields: [createdById], references: [id])
-  updatedBy   User      @relation("UpdatedBy", fields: [updatedById], references: [id])
+  comments Comment[] @relation(name: "BlogComments")
 }
 
 model Keystore {
@@ -136,4 +133,31 @@ model Document {
   fileSize    Int      // in bytes
   thumbnailUrl String? // Cloudinary URL
   status      Boolean  @default(true)
+  comments Comment[] @relation(name: "DocumentComments")
+}
+
+
+model Comment {
+  id        String    @id @default(cuid())
+  message   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  userId    String
+  user      User      @relation(name: "UserComments", fields: [userId], references: [id], onDelete: Cascade)
+  documentId String?
+  document Document? @relation(name: "DocumentComments", fields: [documentId], references: [id], onDelete: Cascade)
+  blogId String?
+  blog Blog? @relation(name: "BlogComments", fields: [blogId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("ParentChild", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Comment[] @relation("ParentChild")
+  parentId  String?
+  likes     Like[]
+}
+
+model Like {
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String
+  commentId String
+  @@id([userId, commentId])
 }

@@ -1,14 +1,14 @@
 import { unlink } from 'fs/promises';
 import cloudinary from '../../helpers/cloudinary';
 import prisma from '../prismaClient';
-import { BadRequestError, InternalError, NotFoundError } from '../../core/ApiError';
+import { BadRequestError } from '../../core/ApiError';
 import { Document } from '@prisma/client';
 import { exec } from 'child_process';
 import mammoth from 'mammoth';
 import nodeHtmlToImage from 'node-html-to-image';
-import fs from "fs";
+import fs from 'fs';
 
-export const uploadFile = async (file: Express.Multer.File, userId: string) => { 
+export const uploadFile = async (file: Express.Multer.File, userId: string) => {
   try {
     if (!file) {
       throw new BadRequestError('No file uploaded');
@@ -22,12 +22,14 @@ export const uploadFile = async (file: Express.Multer.File, userId: string) => {
 
     // Check file type
     const ALLOWED_FILE_TYPES = [
-      'application/pdf', 
-      'application/msword', 
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ];
     if (!ALLOWED_FILE_TYPES.includes(file.mimetype)) {
-      throw new BadRequestError('Invalid file type. Only Word (.doc, .docx) and PDF (.pdf) files are allowed');
+      throw new BadRequestError(
+        'Invalid file type. Only Word (.doc, .docx) and PDF (.pdf) files are allowed',
+      );
     }
 
     // Handle file name
@@ -43,31 +45,31 @@ export const uploadFile = async (file: Express.Multer.File, userId: string) => {
         public_id: uniqueFileName,
       });
     } catch (err) {
-      console.error("Cloudinary upload error:", err);
-      throw new BadRequestError("Failed to upload file to Cloudinary");
+      console.error('Cloudinary upload error:', err);
+      throw new BadRequestError('Failed to upload file to Cloudinary');
     }
 
     // Process thumbnail generation
-    let thumbnailPath = "";
-    let thumbnailUrl = "";
-    
+    let thumbnailPath = '';
+    let thumbnailUrl = '';
+
     try {
-      if (file.mimetype === "application/pdf") {
+      if (file.mimetype === 'application/pdf') {
         thumbnailPath = await generatePdfThumbnail(file.path);
-      } else if (file.mimetype.includes("word")) {
+      } else if (file.mimetype.includes('word')) {
         thumbnailPath = await generateDocxThumbnail(file.path);
       }
 
       // If you have a thumbnail, upload it to Cloudinary
       if (thumbnailPath) {
         const thumbUpload = await cloudinary.uploader.upload(thumbnailPath, {
-          resource_type: "image",
-          folder: "user_uploads/thumbnails",
+          resource_type: 'image',
+          folder: 'user_uploads/thumbnails',
         });
         thumbnailUrl = thumbUpload.secure_url;
       }
     } catch (err) {
-      console.error("Thumbnail generation error:", err);
+      console.error('Thumbnail generation error:', err);
     }
 
     // Save information file to database
@@ -82,10 +84,10 @@ export const uploadFile = async (file: Express.Multer.File, userId: string) => {
           fileSize: file.size,
           thumbnailUrl,
           createdAt: new Date(),
-        }
+        },
       });
     } catch (err) {
-      console.error("Database error:", err);
+      console.error('Database error:', err);
     }
 
     // Remove temporary file
@@ -95,36 +97,47 @@ export const uploadFile = async (file: Express.Multer.File, userId: string) => {
         await unlink(thumbnailPath);
       }
     } catch (err) {
-      console.warn("Temporary file cleanup error:", err);
+      console.warn('Temporary file cleanup error:', err);
     }
 
     return fileRecord;
   } catch (error) {
-    console.error("Error uploading file:", error);
+    console.error('Error uploading file:', error);
     throw error;
   }
 };
 
 async function getMyDocuments(
-  studentId: string, 
-  page: number, 
-  limit: number, 
-  baseUrl: string
-): Promise<{ documents: Document[], totalPages: number, totalDocuments: number, result: number, nextPage?: string, previousPage?: string }> {
+  studentId: string,
+  page: number,
+  limit: number,
+  baseUrl: string,
+): Promise<{
+  documents: Document[];
+  totalPages: number;
+  totalDocuments: number;
+  result: number;
+  nextPage?: string;
+  previousPage?: string;
+}> {
   const totalDocuments = await prisma.document.count({ where: { studentId } });
 
   const totalPages = totalDocuments > 0 ? Math.ceil(totalDocuments / limit) : 0;
 
   const documents = await prisma.document.findMany({
     where: { studentId },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     skip: (page - 1) * limit,
     take: limit,
   });
 
   // Create next & previous page links
-  const nextPage = page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : undefined;
-  const previousPage = page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : undefined;
+  const nextPage =
+    page < totalPages
+      ? `${baseUrl}?page=${page + 1}&limit=${limit}`
+      : undefined;
+  const previousPage =
+    page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : undefined;
 
   return {
     result: documents.length,
@@ -137,13 +150,22 @@ async function getMyDocuments(
 }
 
 async function getMyStudentsDocuments(
-  tutorId: string, 
-  page: number, 
-  limit: number, 
-  baseUrl: string
-): Promise<{ documents: Document[], totalPages: number, totalDocuments: number, result: number, nextPage?: string, previousPage?: string }> {
+  tutorId: string,
+  page: number,
+  limit: number,
+  baseUrl: string,
+): Promise<{
+  documents: Document[];
+  totalPages: number;
+  totalDocuments: number;
+  result: number;
+  nextPage?: string;
+  previousPage?: string;
+}> {
   // Check if the tutor has any students
-  const studentsAssigned = await prisma.allocation.findFirst({ where: { tutorId } });
+  const studentsAssigned = await prisma.allocation.findFirst({
+    where: { tutorId },
+  });
 
   if (!studentsAssigned) {
     return {
@@ -174,7 +196,7 @@ async function getMyStudentsDocuments(
         studentAllocations: { some: { tutorId } },
       },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     skip: (page - 1) * limit,
     take: limit,
     include: {
@@ -185,8 +207,12 @@ async function getMyStudentsDocuments(
   });
 
   // Create next & previous page links
-  const nextPage = page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : undefined;
-  const previousPage = page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : undefined;
+  const nextPage =
+    page < totalPages
+      ? `${baseUrl}?page=${page + 1}&limit=${limit}`
+      : undefined;
+  const previousPage =
+    page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : undefined;
 
   return {
     result: documents.length,
@@ -197,7 +223,6 @@ async function getMyStudentsDocuments(
     previousPage,
   };
 }
-
 
 // Create thumbnail for pdf document
 // const generatePdfThumbnail = async (filePath: string): Promise<string> => {
@@ -222,20 +247,23 @@ const generatePdfThumbnail = async (filePath: string): Promise<string> => {
       throw new Error(`File not found: ${filePath}`);
     }
 
-    const outputPath = filePath.replace(".pdf", "_thumb.jpg");
-    const command = `pdftoppm -jpeg -f 1 -singlefile "${filePath}" "${outputPath.replace(".jpg", "")}"`;
+    const outputPath = filePath.replace('.pdf', '_thumb.jpg');
+    const command = `pdftoppm -jpeg -f 1 -singlefile "${filePath}" "${outputPath.replace(
+      '.jpg',
+      '',
+    )}"`;
 
     return new Promise((resolve, reject) => {
       exec(command, (error, stdout, stderr) => {
         if (error) {
-          console.error("pdftoppm error:", error);
-          console.error("stderr:", stderr);
+          console.error('pdftoppm error:', error);
+          console.error('stderr:', stderr);
           reject(new Error(`pdftoppm failed: ${stderr}`));
           return;
         }
 
         if (!fs.existsSync(outputPath)) {
-          reject(new Error("Thumbnail generation failed: File not created"));
+          reject(new Error('Thumbnail generation failed: File not created'));
           return;
         }
 
@@ -243,7 +271,7 @@ const generatePdfThumbnail = async (filePath: string): Promise<string> => {
       });
     });
   } catch (error) {
-    console.error("Error generating PDF thumbnail:", error);
+    console.error('Error generating PDF thumbnail:', error);
     throw error;
   }
 };
@@ -268,9 +296,11 @@ const generatePdfThumbnail = async (filePath: string): Promise<string> => {
 
 // Create thumbnail for word document (extract content and convert to image)
 const generateDocxThumbnail = async (filePath: string): Promise<string> => {
-  const outputPath = filePath.replace(".docx", "_thumb.png");
-  const { value: textContent } = await mammoth.extractRawText({ path: filePath });
-  const previewText = textContent.split("\n").slice(0, 5).join("<br>");
+  const outputPath = filePath.replace('.docx', '_thumb.png');
+  const { value: textContent } = await mammoth.extractRawText({
+    path: filePath,
+  });
+  const previewText = textContent.split('\n').slice(0, 5).join('<br>');
 
   await nodeHtmlToImage({
     output: outputPath,
@@ -285,4 +315,4 @@ export default {
   getMyStudentsDocuments,
   generatePdfThumbnail,
   generateDocxThumbnail,
-}
+};
