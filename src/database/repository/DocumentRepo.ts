@@ -1,16 +1,7 @@
 import { unlink } from 'fs/promises';
 import cloudinary from '../../helpers/cloudinary';
 import prisma from '../prismaClient';
-import {
-  BadRequestError,
-  InternalError,
-  NotFoundError,
-} from '../../core/ApiError';
-import {
-  BadRequestError,
-  InternalError,
-  NotFoundError,
-} from '../../core/ApiError';
+import { BadRequestError } from '../../core/ApiError';
 import { Document } from '@prisma/client';
 import { exec } from 'child_process';
 import mammoth from 'mammoth';
