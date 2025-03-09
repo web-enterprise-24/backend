@@ -33,12 +33,11 @@ router.post(
     const createdBlog = await BlogRepo.create({
       title: req.body.title,
       description: req.body.description,
-      draftText: req.body.text,
+      draftText: req.body.draftText,
       tags: req.body.tags,
       authorId: req.user.id,
       blogUrl: req.body.blogUrl,
       imgUrl: req.body.imgUrl,
-      score: req.body.score,
       contentRichText: req.body.contentRichText,
     } as Blog);
 
