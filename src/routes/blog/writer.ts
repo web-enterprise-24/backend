@@ -38,6 +38,7 @@ router.post(
       authorId: req.user.id,
       blogUrl: req.body.blogUrl,
       imgUrl: req.body.imgUrl,
+      isSubmitted: true,
       contentRichText: req.body.contentRichText,
     } as Blog);
 
