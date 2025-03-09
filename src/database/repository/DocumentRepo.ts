@@ -1,10 +1,12 @@
 import { unlink } from 'fs/promises';
 import cloudinary from '../../helpers/cloudinary';
 import prisma from '../prismaClient';
-import { BadRequestError, InternalError, NotFoundError } from '../../core/ApiError';
-import e from 'express';
+import {
+  BadRequestError,
+  InternalError,
+  NotFoundError,
+} from '../../core/ApiError';
 import { Document } from '@prisma/client';
-import { Allocation } from '@prisma/client';
 
 export const uploadFile = async (file: Express.Multer.File, userId: string) => {
   if (!file) {
@@ -13,19 +15,25 @@ export const uploadFile = async (file: Express.Multer.File, userId: string) => {
 
   // Check file size
   const MAX_FILE_SIZE = 1024 * 1024 * 10; // 10MB
-  if (file.size > MAX_FILE_SIZE){
+  if (file.size > MAX_FILE_SIZE) {
     throw new BadRequestError('File size too large. Max file size is 10MB');
   }
 
   // Check file type
-  const ALLOWED_FILE_TYPES = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-  if(!ALLOWED_FILE_TYPES.includes(file.mimetype)){
-    throw new BadRequestError('Invalid file type. Only Word (.doc, .docx) and PDF (.pdf) files are allowed');
+  const ALLOWED_FILE_TYPES = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ];
+  if (!ALLOWED_FILE_TYPES.includes(file.mimetype)) {
+    throw new BadRequestError(
+      'Invalid file type. Only Word (.doc, .docx) and PDF (.pdf) files are allowed',
+    );
   }
 
   // Check special characters
   const checkFileName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '_');
-  
+
   // Create unique file name
   const uniqueFileName = `${userId}_${checkFileName}`;
 
@@ -45,7 +53,7 @@ export const uploadFile = async (file: Express.Multer.File, userId: string) => {
       fileType: file.mimetype,
       fileSize: file.size,
       createdAt: new Date(),
-    }
+    },
   });
 
   await unlink(file.path); // Remove temporary file
@@ -64,8 +72,8 @@ export const uploadFile = async (file: Express.Multer.File, userId: string) => {
 
 async function getMyDocuments(studentId: string): Promise<Document[]> {
   // Check if studentId is valid
-  if (!studentId || typeof studentId !== "string") {
-    throw new BadRequestError("Invalid student ID");
+  if (!studentId || typeof studentId !== 'string') {
+    throw new BadRequestError('Invalid student ID');
   }
 
   // Check if studentId exists
@@ -74,25 +82,25 @@ async function getMyDocuments(studentId: string): Promise<Document[]> {
   });
 
   if (!studentExists) {
-    throw new NotFoundError("Student not found");
+    throw new NotFoundError('Student not found');
   }
 
   try {
     // Get all documents for the student
     const documents = await prisma.document.findMany({
       where: { studentId },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
 
     // Check if documents exist
     if (documents.length === 0) {
-      throw new NotFoundError("No documents found for this student");
+      throw new NotFoundError('No documents found for this student');
     }
 
     return documents;
   } catch (error) {
-    console.error("Error fetching documents:", error);
-    throw new InternalError("Something went wrong while fetching documents");
+    console.error('Error fetching documents:', error);
+    throw new InternalError('Something went wrong while fetching documents');
   }
 }
 
@@ -101,7 +109,7 @@ async function getMyStudentsDocuments(tutorId: string): Promise<Document[]> {
     where: {
       student: {
         studentAllocations: {
-          some: {tutorId},
+          some: { tutorId },
         },
       },
     },
@@ -116,13 +124,12 @@ async function getMyStudentsDocuments(tutorId: string): Promise<Document[]> {
           profilePicUrl: true,
           status: true,
         },
-      }
-    }
+      },
+    },
   });
 }
-
 
 export default {
   getMyDocuments,
   getMyStudentsDocuments,
-}
+};

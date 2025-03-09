@@ -17,6 +17,7 @@ import account from './access/account';
 import allocate from './tutoring/allocate';
 import upload from './tutoring/upload';
 import chat from './tutoring/chat';
+import blog from './blog';
 
 const router = express.Router();
 
@@ -37,5 +38,6 @@ router.use('/account', account);
 router.use('/allocate', allocate);
 router.use('/upload', upload);
 router.use('/chat', chat);
+router.use('/blog', blog);
 
 export default router;
