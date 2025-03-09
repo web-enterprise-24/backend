@@ -26,37 +26,6 @@ router.post(
   })
 );
 
-// router.get(
-//   '/myDocuments',
-//   asyncHandler(async (req: ProtectedRequest, res) => {
-//     const documents = await DocumentRepo.getMyDocuments(req.user.id);
-
-//     new SuccessResponse('My documents', documents).send(res);
-//   })
-// );
-
-// router.get(
-//   '/myStudentsDocuments',
-//   asyncHandler(async (req: ProtectedRequest, res) => {
-//     const documents = await DocumentRepo.getMyStudentsDocuments(req.user.id);
-
-//     new SuccessResponse('My students documents', documents).send(res);
-//   })
-// );
-
-// router.get(
-//   "/myDocuments",
-//   asyncHandler(async (req: ProtectedRequest, res) => {
-//     const page = Number(req.query.page) || 1;
-//     const limit = Number(req.query.limit) || 5;
-//     const baseUrl = `https://${req.get("host")}${req.baseUrl}/myDocuments`;
-
-//     const documents = await DocumentRepo.getMyDocuments(req.user.id, page, limit, baseUrl);
-
-//     new SuccessResponse("My documents", documents).send(res);
-//   })
-// );
-
 router.get(
   "/myDocuments",
   asyncHandler(async (req: ProtectedRequest, res) => {
