@@ -8,179 +8,102 @@ import mammoth from 'mammoth';
 import nodeHtmlToImage from 'node-html-to-image';
 import fs from "fs";
 
-export const uploadFile = async (file: Express.Multer.File, userId: string) => {
+export const uploadFile = async (file: Express.Multer.File, userId: string) => { 
   try {
     if (!file) {
       throw new BadRequestError('No file uploaded');
     }
 
     // Check file size
-    const MAX_FILE_SIZE = 1024 * 1024 * 10; // 10MB
-    if (file.size > MAX_FILE_SIZE){
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    if (file.size > MAX_FILE_SIZE) {
       throw new BadRequestError('File size too large. Max file size is 10MB');
     }
 
     // Check file type
-    const ALLOWED_FILE_TYPES = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    if(!ALLOWED_FILE_TYPES.includes(file.mimetype)){
+    const ALLOWED_FILE_TYPES = [
+      'application/pdf', 
+      'application/msword', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    if (!ALLOWED_FILE_TYPES.includes(file.mimetype)) {
       throw new BadRequestError('Invalid file type. Only Word (.doc, .docx) and PDF (.pdf) files are allowed');
     }
 
     // Handle file name
-    const checkFileName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '_');
-    const uniqueFileName = `${userId}_${checkFileName}`;
+    const sanitizedFileName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '_');
+    const uniqueFileName = `${userId}_${sanitizedFileName}_${Date.now()}`;
 
     // Upload file to Cloudinary
-    const result = await cloudinary.uploader.upload(file.path, {
-      resource_type: 'auto',
-      folder: 'user_uploads',
-      public_id: uniqueFileName,
-    });
+    let uploadedFile;
+    try {
+      uploadedFile = await cloudinary.uploader.upload(file.path, {
+        resource_type: 'auto',
+        folder: 'user_uploads',
+        public_id: uniqueFileName,
+      });
+    } catch (err) {
+      console.error("Cloudinary upload error:", err);
+      throw new BadRequestError("Failed to upload file to Cloudinary");
+    }
 
-    // Generate thumbnail for PDF or Word documents
+    // Process thumbnail generation
     let thumbnailPath = "";
     let thumbnailUrl = "";
-
-    if (file.mimetype === "application/pdf") {
-      thumbnailPath = await generatePdfThumbnail(file.path);
-    } else if (file.mimetype.includes("word")) {
-      thumbnailPath = await generateDocxThumbnail(file.path);
-    }
-
-    // Upload thumbnail to Cloudinary
-    if (thumbnailPath) {
-      const thumbResult = await cloudinary.uploader.upload(thumbnailPath, {
-        resource_type: "image",
-        folder: "user_uploads/thumbnails",
-      });
-      thumbnailUrl = thumbResult.secure_url;
-    }
-
-    // Save file record to database
-    const fileRecord = await prisma.document.create({
-      data: {
-        studentId: userId,
-        fileUrl: result.secure_url,
-        fileName: checkFileName,
-        fileType: file.mimetype,
-        fileSize: file.size,
-        thumbnailUrl,
-        createdAt: new Date(),
+    
+    try {
+      if (file.mimetype === "application/pdf") {
+        thumbnailPath = await generatePdfThumbnail(file.path);
+      } else if (file.mimetype.includes("word")) {
+        thumbnailPath = await generateDocxThumbnail(file.path);
       }
-    });
 
-    // Delete temporary files (only delete local files, do not delete Cloudinary links)
-    await unlink(file.path).catch(() => {}); 
-    if (thumbnailPath) {
-      await unlink(thumbnailPath).catch(() => {});
+      // If you have a thumbnail, upload it to Cloudinary
+      if (thumbnailPath) {
+        const thumbUpload = await cloudinary.uploader.upload(thumbnailPath, {
+          resource_type: "image",
+          folder: "user_uploads/thumbnails",
+        });
+        thumbnailUrl = thumbUpload.secure_url;
+      }
+    } catch (err) {
+      console.error("Thumbnail generation error:", err);
+    }
+
+    // Save information file to database
+    let fileRecord;
+    try {
+      fileRecord = await prisma.document.create({
+        data: {
+          studentId: userId,
+          fileUrl: uploadedFile.secure_url,
+          fileName: sanitizedFileName,
+          fileType: file.mimetype,
+          fileSize: file.size,
+          thumbnailUrl,
+          createdAt: new Date(),
+        }
+      });
+    } catch (err) {
+      console.error("Database error:", err);
+    }
+
+    // Remove temporary file
+    try {
+      await unlink(file.path);
+      if (thumbnailPath) {
+        await unlink(thumbnailPath);
+      }
+    } catch (err) {
+      console.warn("Temporary file cleanup error:", err);
     }
 
     return fileRecord;
   } catch (error) {
     console.error("Error uploading file:", error);
-    throw new BadRequestError("Failed to upload file");
+    throw error;
   }
 };
-
-// async function getMyDocuments(studentId: string): Promise<Document[]> {
-//   try {
-//     // Get all documents for the student
-//     const documents = await prisma.document.findMany({
-//       where: { studentId },
-//       orderBy: { createdAt: "desc" },
-//     });
-
-//     // Check if documents exist
-//     if (documents.length === 0) {
-//       throw new NotFoundError("No documents found for this student");
-//     }
-
-//     return documents;
-//   } catch (error) {
-//     console.error("Error fetching documents:", error);
-//     throw new InternalError("Something went wrong while fetching documents");
-//   }
-// }
-
-// async function getMyStudentsDocuments(tutorId: string): Promise<Document[]> {
-//   // Check if the tutor has any students
-//   const studentsAssigned = await prisma.allocation.findFirst({
-//     where: { tutorId },
-//   });
-
-//   if (!studentsAssigned) {
-//     throw new NotFoundError("No students assigned to this tutor");
-//   }
-
-//   // Get a list of student documents that the tutor is teaching
-//   const documents = await prisma.document.findMany({
-//     where: {
-//       student: {
-//         studentAllocations: {
-//           some: { tutorId },
-//         },
-//       },
-//     },
-//     orderBy: { createdAt: "desc" },
-//     include: {
-//       student: {
-//         select: {
-//           email: true,
-//           name: true,
-//           profilePicUrl: true,
-//           status: true,
-//         },
-//       },
-//     },
-//   });
-
-//   if (documents.length === 0) {
-//     throw new NotFoundError("No documents found for students assigned to this tutor");
-//   }
-
-//   return documents;
-// }
-
-// async function getMyDocuments(
-//   studentId: string, 
-//   page: number, 
-//   limit: number, 
-//   baseUrl: string
-// ): Promise<{ documents: Document[], totalPages: number, totalDocuments: number, result: number, nextPage?: string, previousPage?: string }> {
-//   try {
-//     const totalDocuments = await prisma.document.count({ where: { studentId } });
-
-//     // Check if documents exist
-//     if (totalDocuments === 0) {
-//       throw new NotFoundError("No documents found for this student");
-//     }
-
-//     const totalPages = Math.ceil(totalDocuments / limit);
-//     // Get all documents for the student
-//     const documents = await prisma.document.findMany({
-//       where: { studentId },
-//       orderBy: { createdAt: "desc" },
-//       skip: (page - 1) * limit,
-//       take: limit,
-//     });
-
-//     // Create next & previous page links
-//     const nextPage = page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : undefined;
-//     const previousPage = page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : undefined;
-
-//     return {
-//       result: documents.length,
-//       totalPages,
-//       totalDocuments,
-//       documents,
-//       nextPage,
-//       previousPage,
-//     };
-//   } catch (error) {
-//     console.error("Error fetching documents:", error);
-//     throw new InternalError("Something went wrong while fetching documents");
-//   }
-// }
 
 async function getMyDocuments(
   studentId: string, 
@@ -212,64 +135,6 @@ async function getMyDocuments(
     previousPage,
   };
 }
-
-// async function getMyStudentsDocuments(
-//   tutorId: string, 
-//   page: number, 
-//   limit: number, 
-//   baseUrl: string
-// ): Promise<{ documents: Document[], totalPages: number, totalDocuments: number, result: number, nextPage?: string, previousPage?: string }> {
-//   // Check if the tutor has any students
-//   const studentsAssigned = await prisma.allocation.findFirst({ where: { tutorId } });
-
-//   if (!studentsAssigned) {
-//     throw new NotFoundError("No students assigned to this tutor");
-//   }
-
-//   const totalDocuments = await prisma.document.count({
-//     where: {
-//       student: {
-//         studentAllocations: { some: { tutorId } },
-//       },
-//     },
-//   });
-
-//   if (totalDocuments === 0) {
-//     throw new NotFoundError("No documents found for students assigned to this tutor");
-//   }
-
-//   const totalPages = Math.ceil(totalDocuments / limit);
-
-//   // Get a list of student documents that the tutor is teaching
-//   const documents = await prisma.document.findMany({
-//     where: {
-//       student: {
-//         studentAllocations: { some: { tutorId } },
-//       },
-//     },
-//     orderBy: { createdAt: "desc" },
-//     skip: (page - 1) * limit,
-//     take: limit,
-//     include: {
-//       student: {
-//         select: { email: true, name: true, profilePicUrl: true, status: true },
-//       },
-//     },
-//   });
-
-//   // Create next & previous page links
-//   const nextPage = page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : undefined;
-//   const previousPage = page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : undefined;
-
-//   return {
-//     result: documents.length,
-//     totalPages,
-//     totalDocuments,
-//     documents,
-//     nextPage,
-//     previousPage,
-//   };
-// }
 
 async function getMyStudentsDocuments(
   tutorId: string, 
