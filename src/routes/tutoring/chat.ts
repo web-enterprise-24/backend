@@ -6,6 +6,8 @@ import MessageRepo from '../../database/repository/MessageRepo';
 import authentication from '../../auth/authentication';
 import UserRepo from '../../database/repository/UserRepo';
 import { BadRequestError } from '../../core/ApiError';
+import schema from './schema';
+import validator from '../../helpers/validator';
 
 const router = express.Router();
 
@@ -25,6 +27,7 @@ router.get(
 );
 router.post(
   '/',
+  validator(schema.chat),
   asyncHandler(async (req: ProtectedRequest, res) => {
     const { receiverId, content } = req.body;
     const message = await MessageRepo.create(req.user.id, receiverId, content);
@@ -42,6 +45,18 @@ router.get(
       throw new BadRequestError('Role code not found');
     }
     const userChats = await MessageRepo.getUserChats(req.user.id, roleCode);
+    new SuccessResponse('User chats fetched', {
+      userChats,
+    }).send(res);
+  }),
+);
+router.get(
+  '/findUserChat',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const userChats = await UserRepo.findPublicUser(
+      req.user.id,
+      req.query.search as string,
+    );
     new SuccessResponse('User chats fetched', {
       userChats,
     }).send(res);

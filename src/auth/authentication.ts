@@ -32,7 +32,7 @@ export default router.use(
       req.user = user;
 
       const keystore = await KeystoreRepo.findforKey(req.user, payload.prm);
-      console.log('🚀 ~ asyncHandler ~ keystore:', keystore);
+      // console.log('🚀 ~ asyncHandler ~ keystore:', keystore);
       if (!keystore) throw new AuthFailureError('Invalid access token');
       req.keystore = keystore;
 
