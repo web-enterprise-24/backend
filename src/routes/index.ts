@@ -18,6 +18,7 @@ import allocate from './tutoring/allocate';
 import upload from './tutoring/upload';
 import chat from './tutoring/chat';
 import blog from './blog';
+import blogs from './blogs';
 
 const router = express.Router();
 
@@ -39,5 +40,5 @@ router.use('/allocate', allocate);
 router.use('/upload', upload);
 router.use('/chat', chat);
 router.use('/blog', blog);
-
+router.use('/blogs', blogs);
 export default router;
