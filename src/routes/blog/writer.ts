@@ -3,19 +3,21 @@ import { SuccessResponse, SuccessMsgResponse } from '../../core/ApiResponse';
 import { ProtectedRequest } from 'app-request';
 import { BadRequestError, ForbiddenError } from '../../core/ApiError';
 import BlogRepo from '../../database/repository/BlogRepo';
-import { RoleCode } from '../../database/model/Role';
+// import { RoleCode } from '../../database/model/Role';
 import validator, { ValidationSource } from '../../helpers/validator';
 import schema from './schema';
 import asyncHandler from '../../helpers/asyncHandler';
-import authentication from '../../auth/authentication';
-import authorization from '../../auth/authorization';
-import role from '../../helpers/role';
+// import authentication from '../../auth/authentication';
+// import authorization from '../../auth/authorization';
+// import role from '../../helpers/role';
 import { Blog } from '@prisma/client';
+import authentication from '../../auth/authentication';
 
 const router = express.Router();
 
 /*-------------------------------------------------------------------------*/
-router.use(authentication, role(RoleCode.STAFF), authorization);
+// router.use(authentication, role(RoleCode.STAFF), authorization);
+router.use(authentication);
 /*-------------------------------------------------------------------------*/
 
 const formatEndpoint = (endpoint: string) =>
@@ -25,6 +27,7 @@ router.post(
   '/',
   validator(schema.blogCreate),
   asyncHandler(async (req: ProtectedRequest, res) => {
+    console.log('🚀 ~ asyncHandler ~ req:', req.body);
     // req.body.blogUrl = formatEndpoint(req.body.blogUrl);
 
     // const blog = await BlogRepo.findUrlIfExists(req.body.blogUrl);
