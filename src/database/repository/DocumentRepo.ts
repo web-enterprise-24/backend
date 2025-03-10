@@ -224,23 +224,6 @@ async function getMyStudentsDocuments(
   };
 }
 
-// Create thumbnail for pdf document
-// const generatePdfThumbnail = async (filePath: string): Promise<string> => {
-//   const outputPath = filePath.replace(".pdf", "_thumb.jpg");
-
-//   return new Promise((resolve, reject) => {
-//     const command = `pdftoppm -jpeg -f 1 -singlefile "${filePath}" "${outputPath.replace(".jpg", "")}"`;
-//     exec(command, async (error) => {
-//       if (error) {
-//         reject(error);
-//       } else {
-//         // Resize image to smaller size for optimization
-//         await sharp(outputPath).resize(300, 400).toFile(outputPath);
-//         resolve(outputPath);
-//       }
-//     });
-//   });
-// };
 const generatePdfThumbnail = async (filePath: string): Promise<string> => {
   try {
     if (!fs.existsSync(filePath)) {
