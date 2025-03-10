@@ -55,18 +55,24 @@ export const uploadFile = async (file: Express.Multer.File, userId: string) => {
 
     try {
       if (file.mimetype === 'application/pdf') {
+        console.log('Attempting to generate PDF thumbnail...');
         thumbnailPath = await generatePdfThumbnail(file.path);
+        console.log('PDF thumbnail generated successfully:', thumbnailPath);
       } else if (file.mimetype.includes('word')) {
+        console.log('Attempting to generate DOCX thumbnail...');
         thumbnailPath = await generateDocxThumbnail(file.path);
+        console.log('DOCX thumbnail generated successfully:', thumbnailPath);
       }
 
       // If you have a thumbnail, upload it to Cloudinary
       if (thumbnailPath) {
+        console.log('Uploading thumbnail to Cloudinary...');
         const thumbUpload = await cloudinary.uploader.upload(thumbnailPath, {
           resource_type: 'image',
           folder: 'user_uploads/thumbnails',
         });
         thumbnailUrl = thumbUpload.secure_url;
+        console.log('Thumbnail uploaded to Cloudinary:', thumbnailUrl);
       }
     } catch (err) {
       console.error('Thumbnail generation error:', err);
