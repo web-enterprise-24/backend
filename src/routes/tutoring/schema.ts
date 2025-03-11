@@ -9,4 +9,11 @@ export default {
     receiverId: Joi.string().required(),
     content: Joi.string().required(),
   }),
+  notification: Joi.object().keys({
+    userId: Joi.string().uuid().required(),
+    title: Joi.string().min(3).max(255).required(),
+    message: Joi.string().min(5).max(500).required(),
+    type: Joi.string().required(),
+    documentId: Joi.string().uuid().optional(),
+  }),
 };
