@@ -40,3 +40,14 @@ export const getNotificationsByUserId = async (userId: string): Promise<Notifica
     throw new BadRequestError('Failed to fetch notifications');
   }
 };
+
+export const deleteNotification = async (notificationId: string): Promise<void> => {
+  try {
+    await prisma.notification.delete({
+      where: { id: notificationId },
+    });
+  } catch (error) {
+    console.error("Error deleting notification:", error);
+    throw error;
+  }
+};
