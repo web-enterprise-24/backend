@@ -7,6 +7,7 @@ import { exec } from 'child_process';
 import mammoth from 'mammoth';
 import nodeHtmlToImage from 'node-html-to-image';
 import fs from 'fs';
+import { createNotification } from './NotificationRepo';
 
 export const uploadFile = async (file: Express.Multer.File, userId: string) => {
   try {
@@ -104,6 +105,39 @@ export const uploadFile = async (file: Express.Multer.File, userId: string) => {
       }
     } catch (err) {
       console.warn('Temporary file cleanup error:', err);
+    }
+
+    // After successfully creating the document
+    if (fileRecord) {
+      try {
+        // Get allocation information to know who this student's tutor is
+        const allocation = await prisma.allocation.findUnique({
+          where: { studentId: userId },
+        });
+        console.log("Allocation data:", allocation);
+
+        if (allocation && allocation.tutorId) {
+          console.log(`Tutor ID found: ${allocation.tutorId}`);
+          // Get student information to display name in notification
+          const student = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { name: true, firstName: true, lastName: true, email: true }
+          });
+
+          const studentName = student?.name || student?.email;
+
+          // Create a notification for the tutor
+          await createNotification({
+            userId: allocation.tutorId,
+            title: 'New Document Submission',
+            message: `${studentName} has submitted a new document: ${sanitizedFileName}`,
+            type: 'document_submission',
+            documentId: fileRecord.id,
+          });
+        }
+      } catch (notifError) {
+        console.error('Error creating notification:', notifError);
+      }
     }
 
     return fileRecord;
