@@ -10,54 +10,55 @@ datasource db {
 model User {
   name                   String?
   profilePicUrl          String?
-  email                  String     @unique
+  email                  String         @unique
   password               String
-  verified               Boolean    @default(false)
-  status                 Boolean    @default(true)
+  verified               Boolean        @default(false)
+  status                 Boolean        @default(true)
   createdAt              DateTime
   updatedAt              DateTime
-  id                     String     @id @default(cuid())
+  id                     String         @id @default(cuid())
   address                String?
   city                   String?
   country                String?
   dateOfBirth            DateTime?
   gender                 String?
-  requiredPasswordChange Boolean    @default(false)
+  requiredPasswordChange Boolean        @default(false)
   firstName              String?
   lastName               String?
-  blogs                  Blog[]     @relation("UserBlogs")
+  blogs                  Blog[]         @relation("UserBlogs")
   keystores              Keystore[]
-  roles                  Role[]     @relation("RoleToUser")
-  studentAllocations Allocation[] @relation(name: "StudentAllocations")
-  tutorAllocations   Allocation[] @relation(name: "TutorAllocations")
-  messages          Message[]    @relation(name: "Sender")
-  receivedMessages  Message[]    @relation(name: "Receiver")
-  documents         Document[]  @relation(name: "Documents")
-  likes             Like[]
-  comments          Comment[]   @relation(name: "UserComments")
+  roles                  Role[]         @relation("RoleToUser")
+  studentAllocations     Allocation[]   @relation(name: "StudentAllocations")
+  tutorAllocations       Allocation[]   @relation(name: "TutorAllocations")
+  messages               Message[]      @relation(name: "Sender")
+  receivedMessages       Message[]      @relation(name: "Receiver")
+  documents              Document[]     @relation(name: "Documents")
+  likes                  Like[]
+  comments               Comment[]      @relation(name: "UserComments")
+  notifications          Notification[] @relation(name: "UserNotifications")
 }
 
 model Blog {
-  id          String    @id @default(cuid())
-  title       String
-  description String
-  draftText   String?
-  contentRichText        String?
-  tags        String[]
-  authorId    String
-  imgUrl      String?
-  blogUrl     String?
-  likes       Int?
-  score       Float     @default(0.01)
-  isSubmitted Boolean   @default(false)
-  isDraft     Boolean   @default(true)
-  isPublished Boolean   @default(false)
-  status      Boolean   @default(true)
-  publishedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  author      User      @relation("UserBlogs", fields: [authorId], references: [id])
-  comments Comment[] @relation(name: "BlogComments")
+  id              String    @id @default(cuid())
+  title           String
+  description     String
+  draftText       String?
+  contentRichText String?
+  tags            String[]
+  authorId        String
+  imgUrl          String?
+  blogUrl         String?
+  likes           Int?
+  score           Float     @default(0.01)
+  isSubmitted     Boolean   @default(false)
+  isDraft         Boolean   @default(true)
+  isPublished     Boolean   @default(false)
+  status          Boolean   @default(true)
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  author          User      @relation("UserBlogs", fields: [authorId], references: [id])
+  comments        Comment[] @relation(name: "BlogComments")
 }
 
 model Keystore {
@@ -92,66 +93,66 @@ model ApiKey {
 }
 
 model Allocation {
-  id         String   @id @default(cuid())
-  studentId  String   @unique
-  tutorId    String?
-  status     Boolean  @default(true)
-  startAt    DateTime
-  student User @relation(name: "StudentAllocations", fields: [studentId], references: [id])
-  tutor   User? @relation(name: "TutorAllocations", fields: [tutorId], references: [id])
+  id        String   @id @default(cuid())
+  studentId String   @unique
+  tutorId   String?
+  status    Boolean  @default(true)
+  startAt   DateTime
+  student   User     @relation(name: "StudentAllocations", fields: [studentId], references: [id])
+  tutor     User?    @relation(name: "TutorAllocations", fields: [tutorId], references: [id])
 }
 
 model AllocationHistory {
-  id String @id @default(cuid())
-  tutorId String
-  startAt DateTime
-  endAt DateTime
+  id        String   @id @default(cuid())
+  tutorId   String
+  startAt   DateTime
+  endAt     DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Message {
-  id String @id @default(cuid())
-  senderId String
+  id         String   @id @default(cuid())
+  senderId   String
   receiverId String
-  content String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  sender User @relation(name: "Sender", fields: [senderId], references: [id])
-  receiver User @relation(name: "Receiver", fields: [receiverId], references: [id])
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  sender     User     @relation(name: "Sender", fields: [senderId], references: [id])
+  receiver   User     @relation(name: "Receiver", fields: [receiverId], references: [id])
 }
 
 model Document {
-  id String @id @default(cuid())
-  studentId String
-  student User @relation(name: "Documents", fields: [studentId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  fileName    String
-  fileUrl     String   // Cloudinary URL
-  fileType    String   // MIME type
-  fileSize    Int      // in bytes
-  thumbnailUrl String? // Cloudinary URL
-  status      Boolean  @default(true)
-  comments Comment[] @relation(name: "DocumentComments")
+  id            String         @id @default(cuid())
+  studentId     String
+  student       User           @relation(name: "Documents", fields: [studentId], references: [id])
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  fileName      String
+  fileUrl       String // Cloudinary URL
+  fileType      String // MIME type
+  fileSize      Int // in bytes
+  thumbnailUrl  String? // Cloudinary URL
+  status        Boolean        @default(true)
+  comments      Comment[]      @relation(name: "DocumentComments")
+  notifications Notification[] @relation("DocumentNotifications")
 }
 
-
 model Comment {
-  id        String    @id @default(cuid())
-  message   String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  userId    String
-  user      User      @relation(name: "UserComments", fields: [userId], references: [id], onDelete: Cascade)
+  id         String    @id @default(cuid())
+  message    String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  userId     String
+  user       User      @relation(name: "UserComments", fields: [userId], references: [id], onDelete: Cascade)
   documentId String?
-  document Document? @relation(name: "DocumentComments", fields: [documentId], references: [id], onDelete: Cascade)
-  blogId String?
-  blog Blog? @relation(name: "BlogComments", fields: [blogId], references: [id], onDelete: Cascade)
-  parent    Comment?  @relation("ParentChild", fields: [parentId], references: [id], onDelete: Cascade)
-  children  Comment[] @relation("ParentChild")
-  parentId  String?
-  likes     Like[]
+  document   Document? @relation(name: "DocumentComments", fields: [documentId], references: [id], onDelete: Cascade)
+  blogId     String?
+  blog       Blog?     @relation(name: "BlogComments", fields: [blogId], references: [id], onDelete: Cascade)
+  parent     Comment?  @relation("ParentChild", fields: [parentId], references: [id], onDelete: Cascade)
+  children   Comment[] @relation("ParentChild")
+  parentId   String?
+  likes      Like[]
 }
 
 model Like {
@@ -159,5 +160,20 @@ model Like {
   comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
   userId    String
   commentId String
+
   @@id([userId, commentId])
+}
+
+model Notification {
+  id         String    @id @default(cuid())
+  userId     String // Notification recipient (tutor)
+  title      String
+  message    String
+  isRead     Boolean   @default(false)
+  type       String?
+  documentId String?
+  document   Document? @relation(name: "DocumentNotifications", fields: [documentId], references: [id], onDelete: SetNull)
+  user       User      @relation(name: "UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }

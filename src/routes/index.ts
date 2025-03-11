@@ -19,6 +19,7 @@ import upload from './tutoring/upload';
 import chat from './tutoring/chat';
 import blog from './blog';
 import blogs from './blogs';
+import notification from './tutoring/notification';
 
 const router = express.Router();
 
@@ -41,4 +42,5 @@ router.use('/upload', upload);
 router.use('/chat', chat);
 router.use('/blog', blog);
 router.use('/blogs', blogs);
+router.use('/notification', notification);
 export default router;
