@@ -17,7 +17,14 @@ router.use(authentication);
 router.get(
   '/',
   asyncHandler(async (req: ProtectedRequest, res) => {
-    const notifications = await getNotificationsByUserId(req.user.id);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const sortOrder = (req.query.sort as 'asc' | 'desc') || 'desc';
+
+    const baseUrl = `https://${req.get("host")}${req.baseUrl}${req.path}`;
+
+    const notifications = await getNotificationsByUserId(req.user.id, page, limit, sortOrder, baseUrl);
+
     return new SuccessResponse('Notifications fetched successfully', notifications).send(res);
   }),
 );
