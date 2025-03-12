@@ -7,6 +7,7 @@ import DocumentRepo, {
   uploadFile,
 } from '../../database/repository/DocumentRepo';
 import { SuccessResponse } from '../../core/ApiResponse';
+import UserRepo from '../../database/repository/UserRepo';
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
@@ -61,6 +62,7 @@ router.get(
   asyncHandler(async (req: ProtectedRequest, res) => {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 5;
+    const sortOrder = (req.query.sort as 'asc' | 'desc') || 'desc';
     const baseUrl = `https://${req.get('host')}${
       req.baseUrl
     }/myStudentsDocuments`;
@@ -69,6 +71,7 @@ router.get(
       req.user.id,
       page,
       limit,
+      sortOrder,
       baseUrl,
     );
 
