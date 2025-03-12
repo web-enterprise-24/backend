@@ -197,9 +197,7 @@ async function getMyDocuments(
 
   // Create next & previous page links
   const nextPage =
-    page < totalPages
-      ? `${baseUrl}?page=${page + 1}&limit=${limit}`
-      : undefined;
+    page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : undefined;
   const previousPage =
     page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : undefined;
 
@@ -217,6 +215,7 @@ async function getMyStudentsDocuments(
   tutorId: string,
   page: number,
   limit: number,
+  sortOrder: 'asc' | 'desc' = 'desc',
   baseUrl: string,
 ): Promise<{
   documents: Document[];
@@ -260,7 +259,9 @@ async function getMyStudentsDocuments(
         studentAllocations: { some: { tutorId } },
       },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { 
+      createdAt: sortOrder
+    },
     skip: (page - 1) * limit,
     take: limit,
     include: {
@@ -286,11 +287,9 @@ async function getMyStudentsDocuments(
 
   // Create next & previous page links
   const nextPage =
-    page < totalPages
-      ? `${baseUrl}?page=${page + 1}&limit=${limit}`
-      : undefined;
+    page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}&sort=${sortOrder}` : undefined;
   const previousPage =
-    page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : undefined;
+    page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}&sort=${sortOrder}` : undefined;
 
   return {
     result: documents.length,

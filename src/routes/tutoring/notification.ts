@@ -2,7 +2,7 @@ import express from 'express';
 import authentication from '../../auth/authentication';
 import asyncHandler from '../../helpers/asyncHandler';
 import { ProtectedRequest } from '../../types/app-request';
-import { deleteNotification, getNotificationsByUserId } from '../../database/repository/NotificationRepo';
+import { deleteNotification, getNotificationsByUserId, markAllNotificationsAsRead, markNotificationAsRead } from '../../database/repository/NotificationRepo';
 import { SuccessResponse } from '../../core/ApiResponse';
 import validator from '../../helpers/validator';
 import schema from './schema';
@@ -17,10 +17,51 @@ router.use(authentication);
 router.get(
   '/',
   asyncHandler(async (req: ProtectedRequest, res) => {
-    const notifications = await getNotificationsByUserId(req.user.id);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const sortOrder = (req.query.sort as 'asc' | 'desc') || 'desc';
+
+    const baseUrl = `https://${req.get("host")}${req.baseUrl}${req.path}`;
+
+    const notifications = await getNotificationsByUserId(req.user.id, page, limit, sortOrder, baseUrl);
+
     return new SuccessResponse('Notifications fetched successfully', notifications).send(res);
   }),
 );
+
+router.patch(
+  '/:id/read',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const { id } = req.params;
+
+    // Check if notification id exists
+    const notification = await prisma.notification.findUnique({
+      where: { id },
+    });
+
+    if (!notification) {
+      throw new BadRequestError("Notification not found");
+    }
+
+    // Update notification status
+    const updatedNotification = await markNotificationAsRead(id);
+
+    return new SuccessResponse('Notification marked as read', updatedNotification).send(res);
+  }),
+);
+
+router.patch(
+  '/read',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const tutorId = req.user.id;
+
+    // Update all unread tutor notifications
+    const updatedCount = await markAllNotificationsAsRead(tutorId);
+
+    return new SuccessResponse(`${updatedCount} notifications marked as read`, null).send(res);
+  }),
+);
+
 
 router.delete(
   '/:id',
