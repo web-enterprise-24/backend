@@ -55,9 +55,10 @@ router.get(
   asyncHandler(async (req: ProtectedRequest, res) => {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 5;
+    const sortOrder = (req.query.sort as 'asc' | 'desc') || 'desc';
     const baseUrl = `https://${req.get("host")}${req.baseUrl}/myStudentsDocuments`;
 
-    const documents = await DocumentRepo.getMyStudentsDocuments(req.user.id, page, limit, baseUrl);
+    const documents = await DocumentRepo.getMyStudentsDocuments(req.user.id, page, limit, sortOrder, baseUrl);
 
     if (documents.totalDocuments === 0) {
       return new SuccessResponse("No documents found for students assigned to this tutor", {
