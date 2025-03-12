@@ -114,14 +114,19 @@ export const uploadFile = async (file: Express.Multer.File, userId: string) => {
         const allocation = await prisma.allocation.findUnique({
           where: { studentId: userId },
         });
-        console.log("Allocation data:", allocation);
+        console.log('Allocation data:', allocation);
 
         if (allocation && allocation.tutorId) {
           console.log(`Tutor ID found: ${allocation.tutorId}`);
           // Get student information to display name in notification
           const student = await prisma.user.findUnique({
             where: { id: userId },
-            select: { name: true, firstName: true, lastName: true, email: true }
+            select: {
+              name: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
           });
 
           const studentName = student?.name || student?.email;
@@ -169,6 +174,25 @@ async function getMyDocuments(
     orderBy: { createdAt: 'desc' },
     skip: (page - 1) * limit,
     take: limit,
+    include: {
+      comments: {
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          message: true,
+          createdAt: true,
+          parentId: true,
+          _count: {
+            select: {
+              likes: true,
+            },
+          },
+          user: {
+            select: { name: true, profilePicUrl: true },
+          },
+        },
+      },
+    },
   });
 
   // Create next & previous page links
@@ -242,6 +266,20 @@ async function getMyStudentsDocuments(
     include: {
       student: {
         select: { email: true, name: true, profilePicUrl: true, status: true },
+      },
+      comments: {
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          message: true,
+          createdAt: true,
+          parentId: true,
+          _count: {
+            select: {
+              likes: true,
+            },
+          },
+        },
       },
     },
   });
