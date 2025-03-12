@@ -20,6 +20,7 @@ import chat from './tutoring/chat';
 import blog from './blog';
 import blogs from './blogs';
 import notification from './tutoring/notification';
+import feedback from './tutoring/feedback';
 
 const router = express.Router();
 
@@ -43,4 +44,5 @@ router.use('/chat', chat);
 router.use('/blog', blog);
 router.use('/blogs', blogs);
 router.use('/notification', notification);
+router.use('/feedback', feedback);
 export default router;

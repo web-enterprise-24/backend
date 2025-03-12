@@ -41,8 +41,12 @@ export default router.use(
       !req.currentRoleCodes
     )
       throw new AuthFailureError('Permission denied');
-
+    console.log(
+      '🚀 ~ asyncHandler ~ req.currentRoleCodes:',
+      req.currentRoleCodes,
+    );
     const roles = await RoleRepo.findByCodes(req.currentRoleCodes);
+    console.log('🚀 ~ asyncHandler ~ roles:', roles);
     if (roles.length === 0) throw new AuthFailureError('Permission denied');
 
     let authorized = false;
@@ -55,6 +59,8 @@ export default router.use(
     for (const userRole of userRoles?.roles || []) {
       if (authorized) break;
       for (const role of roles) {
+        console.log('🚀 ~ asyncHandler ~ role:', role);
+        console.log('🚀 ~ asyncHandler ~ userRole:', userRole);
         if (userRole.id === role.id) {
           authorized = true;
           break;
