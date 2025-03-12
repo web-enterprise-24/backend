@@ -31,7 +31,17 @@ export const getNotificationsByUserId = async (userId: string): Promise<Notifica
       where: { userId },
       orderBy: { createdAt: 'desc' },
       include: {
-        document: true
+        document: {
+          include: {
+            student: {
+              select: {
+                name: true,
+                email: true,
+                profilePicUrl: true,
+              }
+            }
+          }
+        }
       }
     });
     return notifications;
