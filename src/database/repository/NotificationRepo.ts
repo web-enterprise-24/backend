@@ -89,6 +89,40 @@ export const getNotificationsByUserId = async (
   }
 };
 
+export const markNotificationAsRead = async (notificationId: string): Promise<Notification> => {
+  try {
+    const updatedNotification = await prisma.notification.update({
+      where: { id: notificationId },
+      data: { isRead: true },
+    });
+
+    return updatedNotification;
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    throw new BadRequestError('Failed to mark notification as read');
+  }
+};
+
+export const markAllNotificationsAsRead = async (tutorId: string): Promise<number> => {
+  try {
+    const result = await prisma.notification.updateMany({
+      where: {
+        isRead: false,
+        userId: tutorId, // Update notices for this tutor only
+      },
+      data: { isRead: true },
+    });
+
+    console.log("Update result:", result);
+
+    return result.count;
+  } catch (error) {
+    console.error('Error marking multiple notifications as read:', error);
+    throw new BadRequestError('Failed to mark notifications as read');
+  }
+};
+
+
 export const deleteNotification = async (notificationId: string): Promise<void> => {
   try {
     await prisma.notification.delete({

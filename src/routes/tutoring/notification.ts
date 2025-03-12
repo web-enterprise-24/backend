@@ -2,7 +2,7 @@ import express from 'express';
 import authentication from '../../auth/authentication';
 import asyncHandler from '../../helpers/asyncHandler';
 import { ProtectedRequest } from '../../types/app-request';
-import { deleteNotification, getNotificationsByUserId } from '../../database/repository/NotificationRepo';
+import { deleteNotification, getNotificationsByUserId, markAllNotificationsAsRead, markNotificationAsRead } from '../../database/repository/NotificationRepo';
 import { SuccessResponse } from '../../core/ApiResponse';
 import validator from '../../helpers/validator';
 import schema from './schema';
@@ -28,6 +28,40 @@ router.get(
     return new SuccessResponse('Notifications fetched successfully', notifications).send(res);
   }),
 );
+
+router.patch(
+  '/:id/read',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const { id } = req.params;
+
+    // Check if notification id exists
+    const notification = await prisma.notification.findUnique({
+      where: { id },
+    });
+
+    if (!notification) {
+      throw new BadRequestError("Notification not found");
+    }
+
+    // Update notification status
+    const updatedNotification = await markNotificationAsRead(id);
+
+    return new SuccessResponse('Notification marked as read', updatedNotification).send(res);
+  }),
+);
+
+router.patch(
+  '/read',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const tutorId = req.user.id;
+
+    // Update all unread tutor notifications
+    const updatedCount = await markAllNotificationsAsRead(tutorId);
+
+    return new SuccessResponse(`${updatedCount} notifications marked as read`, null).send(res);
+  }),
+);
+
 
 router.delete(
   '/:id',
