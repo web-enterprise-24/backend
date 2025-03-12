@@ -30,6 +30,9 @@ async function findInfoForPublishedById(id: string): Promise<Blog | null> {
 async function findBlogAllDataById(id: string): Promise<Blog | null> {
   return prisma.blog.findUnique({
     where: { id: id, status: true },
+    include: {
+      author: { select: { name: true, profilePicUrl: true } },
+    },
   });
 }
 
@@ -131,6 +134,10 @@ async function findLatestBlogs(
   });
 }
 
+async function countPublishedBlogs(): Promise<number> {
+  return prisma.blog.count({ where: { status: true, isPublished: true } });
+}
+
 async function searchSimilarBlogs(blog: Blog, limit: number): Promise<Blog[]> {
   return prisma.blog.findMany({
     where: {
@@ -191,4 +198,5 @@ export default {
   searchSimilarBlogs,
   search,
   searchLike,
+  countPublishedBlogs,
 };

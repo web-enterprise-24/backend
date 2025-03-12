@@ -40,7 +40,35 @@ router.get(
       parseInt(req.query.pageNumber as string),
       parseInt(req.query.pageItemCount as string),
     );
-    return new SuccessResponse('success', blogs).send(res);
+    const baseUrl = `https://${req.get('host')}${req.baseUrl}${req.path}`;
+    const paginationData = {
+      result: blogs.length,
+      total: await BlogRepo.countPublishedBlogs(),
+      page: parseInt(req.query.pageNumber as string),
+      limit: parseInt(req.query.pageItemCount as string),
+      totalPages: Math.ceil(
+        (await BlogRepo.countPublishedBlogs()) /
+          parseInt(req.query.pageItemCount as string),
+      ),
+      pagination: {
+        next: `${baseUrl}?page=${
+          parseInt(req.query.pageNumber as string) + 1
+        }&limit=${parseInt(req.query.pageItemCount as string)}`,
+        previous: `${baseUrl}?page=${
+          parseInt(req.query.pageNumber as string) - 1
+        }&limit=${parseInt(req.query.pageItemCount as string)}`,
+      },
+    };
+    return new SuccessResponse('success', { blogs, paginationData }).send(res);
+  }),
+);
+
+router.get(
+  '/:id',
+  validator(schema.blogId, ValidationSource.PARAM),
+  asyncHandler(async (req, res) => {
+    const blog = await BlogRepo.findBlogAllDataById(req.params.id);
+    return new SuccessResponse('success', blog).send(res);
   }),
 );
 
