@@ -30,6 +30,9 @@ async function findInfoForPublishedById(id: string): Promise<Blog | null> {
 async function findBlogAllDataById(id: string): Promise<Blog | null> {
   return prisma.blog.findUnique({
     where: { id: id, status: true },
+    include: {
+      author: { select: { name: true, profilePicUrl: true } },
+    },
   });
 }
 
