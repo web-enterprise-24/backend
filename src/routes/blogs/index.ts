@@ -68,6 +68,7 @@ router.get(
   validator(schema.blogId, ValidationSource.PARAM),
   asyncHandler(async (req, res) => {
     const blog = await BlogRepo.findBlogAllDataById(req.params.id);
+    console.log('🚀 ~ asyncHandler ~ blog:', blog);
     return new SuccessResponse('success', blog).send(res);
   }),
 );

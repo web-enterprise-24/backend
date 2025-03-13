@@ -31,7 +31,7 @@ router.put(
       isDraft: false,
       isSubmitted: false,
       isPublished: true,
-      contentRichText: blog.draftText || '',
+      // contentRichText: blog.draftText || '',
       publishedAt: blog.publishedAt || new Date(),
     } as Blog);
     return new SuccessMsgResponse('Blog published successfully').send(res);
