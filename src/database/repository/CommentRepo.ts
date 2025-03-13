@@ -1,7 +1,7 @@
 import prisma from '../prismaClient';
 import { Comment } from '@prisma/client';
 
-async function create(
+async function createFeedback(
   userId: string,
   message: string,
   documentId: string,
@@ -17,9 +17,31 @@ async function create(
   });
 }
 
-async function deleteComment(userId: string, commentId: string) {
+async function deleteFeedback(userId: string, commentId: string) {
   return await prisma.comment.delete({
     where: { id: commentId, userId },
+  });
+}
+
+async function updateFeedback(
+  userId: string,
+  commentId: string,
+  message: string,
+) {
+  return await prisma.comment.update({
+    where: { id: commentId, userId },
+    data: { message },
+  });
+}
+
+async function createComment(
+  userId: string,
+  message: string,
+  blogId: string,
+  parentId?: string,
+) {
+  return prisma.comment.create({
+    data: { message, blogId, userId, parentId: parentId ?? null },
   });
 }
 
@@ -34,8 +56,15 @@ async function updateComment(
   });
 }
 
+async function deleteComment(userId: string, commentId: string) {
+  return await prisma.comment.delete({ where: { id: commentId, userId } });
+}
+
 export default {
-  create,
+  createFeedback,
+  deleteFeedback,
+  updateFeedback,
+  createComment,
   deleteComment,
   updateComment,
 };

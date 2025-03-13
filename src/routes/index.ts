@@ -21,6 +21,7 @@ import blog from './blog';
 import blogs from './blogs';
 import notification from './tutoring/notification';
 import feedback from './tutoring/feedback';
+import comment from './tutoring/comment';
 
 const router = express.Router();
 
@@ -45,4 +46,5 @@ router.use('/blog', blog);
 router.use('/blogs', blogs);
 router.use('/notification', notification);
 router.use('/feedback', feedback);
+router.use('/comment', comment);
 export default router;
