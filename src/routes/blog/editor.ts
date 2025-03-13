@@ -45,11 +45,16 @@ router.put(
     const blog = await BlogRepo.findBlogAllDataById(req.params.id);
     if (!blog) throw new BadRequestError('Blog does not exists');
 
-    blog.isDraft = true;
-    blog.isSubmitted = false;
-    blog.isPublished = false;
+    // blog.isDraft = true;
+    // blog.isSubmitted = false;
+    // blog.isPublished = false;
 
-    await BlogRepo.update(blog);
+    await BlogRepo.update({
+      id: blog.id,
+      isDraft: true,
+      isSubmitted: false,
+      isPublished: false,
+    } as Blog);
     return new SuccessMsgResponse('Blog unpublished successfully').send(res);
   }),
 );
