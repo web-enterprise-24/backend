@@ -124,7 +124,7 @@ router.delete(
     if (blog.isPublished) {
       blog.isDraft = false;
       // revert to the original state
-      blog.draftText = blog.contentRichText || '';
+      // blog.draftText = blog.contentRichText || '';
     } else {
       blog.status = false;
     }

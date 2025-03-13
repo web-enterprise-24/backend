@@ -36,6 +36,7 @@ router.get(
   validator(schema.blogId, ValidationSource.PARAM),
   asyncHandler(async (req, res) => {
     let blog = await BlogCache.fetchById(req.params.id);
+    console.log('🚀 ~ asyncHandler ~ blog:', blog);
 
     if (!blog) {
       blog = await BlogRepo.findInfoForPublishedById(req.params.id);
