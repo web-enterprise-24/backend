@@ -188,7 +188,7 @@ async function getMyDocuments(
             },
           },
           user: {
-            select: { name: true, profilePicUrl: true },
+            select: { name: true, email: true, profilePicUrl: true },
           },
         },
       },
@@ -281,6 +281,9 @@ async function getMyStudentsDocuments(
             select: {
               likes: true,
             },
+          },
+          user: {
+            select: { name: true, email: true, profilePicUrl: true },
           },
         },
       },
