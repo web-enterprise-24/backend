@@ -1,5 +1,6 @@
 import prisma from '../prismaClient';
 import { Comment } from '@prisma/client';
+
 async function create(
   userId: string,
   message: string,
