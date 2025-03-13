@@ -85,13 +85,13 @@ router.post(
   }),
 );
 
-
 router.put(
   '/:documentId/:commentId',
   asyncHandler(async (req: ProtectedRequest, res) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { documentId, commentId } = req.params;
     const { message } = req.body;
-    const comment = await CommentRepo.updateComment(
+    const comment = await CommentRepo.updateFeedback(
       req.user.id,
       commentId,
       message,
@@ -104,7 +104,7 @@ router.delete(
   '/:documentId/:commentId',
   asyncHandler(async (req: ProtectedRequest, res) => {
     const { documentId, commentId } = req.params;
-    await CommentRepo.deleteComment(req.user.id, commentId);
+    await CommentRepo.deleteFeedback(req.user.id, commentId);
     console.log('🚀 ~ asyncHandler ~ documentId:', documentId);
     return new SuccessResponse('Comment deleted', null).send(res);
   }),

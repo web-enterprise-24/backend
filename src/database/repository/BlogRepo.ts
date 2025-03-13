@@ -32,6 +32,23 @@ async function findBlogAllDataById(id: string): Promise<Blog | null> {
     where: { id: id, status: true },
     include: {
       author: { select: { name: true, profilePicUrl: true } },
+      comments: {
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          message: true,
+          createdAt: true,
+          parentId: true,
+          _count: {
+            select: {
+              likes: true,
+            },
+          },
+          user: {
+            select: { id: true, name: true, email: true, profilePicUrl: true },
+          },
+        },
+      },
     },
   });
 }
@@ -129,6 +146,23 @@ async function findLatestBlogs(
     take: limit,
     include: {
       author: { select: { name: true, profilePicUrl: true } },
+      comments: {
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          message: true,
+          createdAt: true,
+          parentId: true,
+          _count: {
+            select: {
+              likes: true,
+            },
+          },
+          user: {
+            select: { id: true, name: true, email: true, profilePicUrl: true },
+          },
+        },
+      },
     },
     orderBy: { publishedAt: 'desc' },
   });
