@@ -51,9 +51,7 @@ export const getNotificationsByUserId = async (
     // Get list of notifications
     const notifications = await prisma.notification.findMany({
       where: { userId },
-      orderBy: {
-        createdAt: sortOrder,
-      },
+      orderBy: { createdAt: sortOrder },
       skip: (page - 1) * limit,
       take: limit,
       include: {
@@ -61,14 +59,27 @@ export const getNotificationsByUserId = async (
           include: {
             student: {
               select: {
+                id: true,
                 name: true,
                 email: true,
                 profilePicUrl: true,
-              }
-            }
-          }
-        }
-      }
+                studentAllocations: {  // Get tutor information
+                  include: {
+                    tutor: {
+                      select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        profilePicUrl: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     // Create next & previous page links
