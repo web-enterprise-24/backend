@@ -10,6 +10,7 @@ import asyncHandler from '../../helpers/asyncHandler';
 import authentication from '../../auth/authentication';
 import authorization from '../../auth/authorization';
 import role from '../../helpers/role';
+import { Blog } from '@prisma/client';
 
 const router = express.Router();
 
@@ -22,15 +23,17 @@ router.put(
   validator(schema.blogId, ValidationSource.PARAM),
   asyncHandler(async (req: ProtectedRequest, res) => {
     const blog = await BlogRepo.findBlogAllDataById(req.params.id);
+    console.log('🚀 ~ asyncHandler ~ blog:', blog);
     if (!blog) throw new BadRequestError('Blog does not exists');
 
-    blog.isDraft = false;
-    blog.isSubmitted = false;
-    blog.isPublished = true;
-    blog.contentRichText = blog.draftText || '';
-    if (!blog.publishedAt) blog.publishedAt = new Date();
-
-    await BlogRepo.update(blog);
+    await BlogRepo.update({
+      id: blog.id,
+      isDraft: false,
+      isSubmitted: false,
+      isPublished: true,
+      // contentRichText: blog.draftText || '',
+      publishedAt: blog.publishedAt || new Date(),
+    } as Blog);
     return new SuccessMsgResponse('Blog published successfully').send(res);
   }),
 );
@@ -42,11 +45,16 @@ router.put(
     const blog = await BlogRepo.findBlogAllDataById(req.params.id);
     if (!blog) throw new BadRequestError('Blog does not exists');
 
-    blog.isDraft = true;
-    blog.isSubmitted = false;
-    blog.isPublished = false;
+    // blog.isDraft = true;
+    // blog.isSubmitted = false;
+    // blog.isPublished = false;
 
-    await BlogRepo.update(blog);
+    await BlogRepo.update({
+      id: blog.id,
+      isDraft: true,
+      isSubmitted: false,
+      isPublished: false,
+    } as Blog);
     return new SuccessMsgResponse('Blog unpublished successfully').send(res);
   }),
 );
