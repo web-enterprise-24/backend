@@ -93,7 +93,17 @@ async function getUserChats(userId: string, roleCode: string) {
     }
   }
 
-  return listChats;
+  // Query additional roles for users in listChats
+  const usersWithRoles = await Promise.all(
+    listChats.map(async (user) => {
+      const roles = await prisma.role.findMany({
+        where: { users: { some: { id: user.id } } },
+      });
+      return { ...user, roles }; // Attach roles to user
+    })
+  );
+
+  return usersWithRoles;
 }
 
 export default {
