@@ -31,7 +31,7 @@ async function findBlogAllDataById(id: string): Promise<Blog | null> {
   return prisma.blog.findUnique({
     where: { id: id, status: true },
     include: {
-      author: { select: { name: true, profilePicUrl: true } },
+      author: { select: { name: true, profilePicUrl: true, roles:true } },
       comments: {
         orderBy: { createdAt: 'desc' },
         select: {
@@ -45,7 +45,7 @@ async function findBlogAllDataById(id: string): Promise<Blog | null> {
             },
           },
           user: {
-            select: { id: true, name: true, email: true, profilePicUrl: true },
+            select: { id: true, name: true, email: true, profilePicUrl: true, roles: true },
           },
         },
       },
@@ -59,9 +59,9 @@ async function findPublishedByUrl(blogUrl: string): Promise<Blog | null> {
     include: {
       author: {
         select: {
-          roles: true,
           name: true,
           profilePicUrl: true,
+          roles: true
         },
       },
     },
@@ -83,7 +83,7 @@ async function findByTagAndPaginated(
     take: limit,
     include: {
       author: {
-        select: { roles: true, name: true, profilePicUrl: true },
+        select: { name: true, profilePicUrl: true, roles: true },
       },
     },
   });
