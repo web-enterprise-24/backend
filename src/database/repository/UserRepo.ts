@@ -66,6 +66,7 @@ async function findPrivateProfileById(id: string) {
 async function findById(id: string) {
   return prisma.user.findUnique({
     where: { id },
+    include: { roles: true },
   });
 }
 
@@ -135,6 +136,7 @@ async function findFieldsById(id: string, ...fields: string[]) {
 async function findPublicProfileById(id: string) {
   return prisma.user.findUnique({
     where: { id },
+    include: { roles: true },
   });
 }
 
