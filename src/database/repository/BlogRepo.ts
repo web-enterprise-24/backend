@@ -1,5 +1,6 @@
 import { Blog, User } from '@prisma/client';
 import prisma from '../prismaClient';
+import { createNotification } from './NotificationRepo';
 
 // async function create(blog: Blog): Promise<Blog> {
 //   const now = new Date();
@@ -8,9 +9,48 @@ import prisma from '../prismaClient';
 //   const createdBlog = await BlogModel.create(blog);
 //   return createdBlog.toObject();
 // }
+
+// async function create(blog: Blog): Promise<Blog> {
+//   console.log('🚀 ~ create ~ blog:', blog);
+//   return prisma.blog.create({ data: blog });
+// }
 async function create(blog: Blog): Promise<Blog> {
-  console.log('🚀 ~ create ~ blog:', blog);
-  return prisma.blog.create({ data: blog });
+  console.log("🚀 ~ create ~ blog:", blog);
+
+  // Create blog
+  const newBlog = await prisma.blog.create({ data: blog });
+
+  // Get staff list
+  const staffList = await prisma.user.findMany({
+    where: { roles: { some: { code: "STAFF" } } },
+  });
+
+  const user = await prisma.user.findUnique({
+    where: { id: blog.authorId },
+    select: {
+      name: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+    },
+  });
+
+  const userName = user?.name || user?.email;
+
+  // Send notification to staff
+  await Promise.all(
+    staffList.map((staff) =>
+      createNotification({
+        userId: staff.id,
+        title: "A New Blog Created",
+        message: `${userName} has submitted a new blog: "${newBlog.title}.`,
+        type: "blog",
+        blogId: newBlog.id,
+      })
+    )
+  );
+
+  return newBlog;
 }
 
 async function update(blog: Blog): Promise<Blog | null> {
