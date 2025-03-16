@@ -51,12 +51,12 @@ router.get(
           parseInt(req.query.pageItemCount as string),
       ),
       pagination: {
-        next: `${baseUrl}?page=${
+        next: `${baseUrl}?pageNumber=${
           parseInt(req.query.pageNumber as string) + 1
-        }&limit=${parseInt(req.query.pageItemCount as string)}`,
-        previous: `${baseUrl}?page=${
+        }&pageItemCount=${parseInt(req.query.pageItemCount as string)}`,
+        previous: `${baseUrl}?pageNumber=${
           parseInt(req.query.pageNumber as string) - 1
-        }&limit=${parseInt(req.query.pageItemCount as string)}`,
+        }&pageItemCount=${parseInt(req.query.pageItemCount as string)}`,
       },
     };
     return new SuccessResponse('success', { blogs, paginationData }).send(res);
