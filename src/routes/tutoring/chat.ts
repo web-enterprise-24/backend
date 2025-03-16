@@ -62,4 +62,13 @@ router.get(
     }).send(res);
   }),
 );
+
+router.get(
+  '/unreadMessages',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const unreadMessages = await MessageRepo.getUnreadMessages(req.user.id);
+    new SuccessResponse('Unread messages status', { unreadMessages }).send(res);
+  }),
+);
+
 export default router;
