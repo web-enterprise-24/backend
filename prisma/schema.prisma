@@ -120,6 +120,7 @@ model Message {
   updatedAt  DateTime @updatedAt
   sender     User     @relation(name: "Sender", fields: [senderId], references: [id])
   receiver   User     @relation(name: "Receiver", fields: [receiverId], references: [id])
+  isRead     Boolean @default(false)
 }
 
 model Document {

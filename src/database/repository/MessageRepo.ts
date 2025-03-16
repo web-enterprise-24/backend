@@ -106,8 +106,19 @@ async function getUserChats(userId: string, roleCode: string) {
   return usersWithRoles;
 }
 
+async function getUnreadMessages(userId: string): Promise<boolean> {
+  const unreadMessage = await prisma.message.findFirst({
+    where: {
+      receiverId: userId,
+      isRead: false,
+    },
+  });
+  return unreadMessage !== null;
+}
+
 export default {
   getMessages,
   create,
   getUserChats,
+  getUnreadMessages,
 };
