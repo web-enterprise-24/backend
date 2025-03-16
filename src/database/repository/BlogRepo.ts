@@ -94,7 +94,7 @@ async function findAllPublishedForAuthor(userId: string): Promise<Blog[]> {
     where: { authorId: userId, status: true, isPublished: true },
     include: {
       author: {
-        select: { name: true, profilePicUrl: true },
+        select: { name: true, profilePicUrl: true, roles: true },
       },
     },
     orderBy: { updatedAt: 'desc' },
@@ -131,7 +131,7 @@ async function findDetailedBlogs(
   return prisma.blog.findMany({
     where: query,
     include: {
-      author: { select: { name: true, profilePicUrl: true } },
+      author: { select: { name: true, profilePicUrl: true, roles:true } },
     },
     orderBy: { updatedAt: 'desc' },
   });
@@ -146,7 +146,7 @@ async function findLatestBlogs(
     skip: limit * (pageNumber - 1),
     take: limit,
     include: {
-      author: { select: { name: true, profilePicUrl: true } },
+      author: { select: { name: true, profilePicUrl: true, roles:true } },
       comments: {
         orderBy: { createdAt: 'desc' },
         select: {
@@ -160,7 +160,7 @@ async function findLatestBlogs(
             },
           },
           user: {
-            select: { id: true, name: true, email: true, profilePicUrl: true },
+            select: { id: true, name: true, email: true, profilePicUrl: true, roles: true },
           },
         },
       },
@@ -184,7 +184,7 @@ async function searchSimilarBlogs(blog: Blog, limit: number): Promise<Blog[]> {
     orderBy: { updatedAt: 'desc' },
     take: limit,
     include: {
-      author: { select: { name: true, profilePicUrl: true } },
+      author: { select: { name: true, profilePicUrl: true, roles: true } },
     },
   });
 }
