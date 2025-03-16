@@ -1,6 +1,7 @@
 import { Notification } from "@prisma/client";
 import prisma from "../prismaClient";
 import { BadRequestError } from "../../core/ApiError";
+import { title } from "process";
 
 
 export const createNotification = async (data: {
@@ -9,6 +10,7 @@ export const createNotification = async (data: {
   message: string;
   type: string;
   documentId?: string;
+  blogId?: string;
 }): Promise<Notification> => {
   try {
     const notification = await prisma.notification.create({
@@ -79,6 +81,21 @@ export const getNotificationsByUserId = async (
             },
           },
         },
+        blog: {
+          select: {
+            id: true,
+            title: true,
+            createdAt: true,
+            author: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                profilePicUrl: true,
+              }
+            }
+          }
+        }
       },
     });
 
