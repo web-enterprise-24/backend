@@ -1,8 +1,6 @@
 import { Notification } from "@prisma/client";
 import prisma from "../prismaClient";
 import { BadRequestError } from "../../core/ApiError";
-import { title } from "process";
-
 
 export const createNotification = async (data: {
   userId: string;
@@ -27,52 +25,180 @@ export const createNotification = async (data: {
   }
 };
 
+// export const getNotificationsByUserId = async (
+//   userId: string, 
+//   page: number, 
+//   limit: number,
+//   sortOrder: 'asc' | 'desc' = 'desc',
+//   baseUrl: string
+// ): Promise<{
+//     notifications: Notification[];
+//     totalPages: number;
+//     totalNotifications: number;
+//     result: number;
+//     nextPage?: string;
+//     previousPage?: string;
+//   }> => {
+//   try {
+//     // Get total number of user notifications
+//     const totalNotifications = await prisma.notification.count({
+//       where: { userId },
+//     })
+
+//     // Calculate total number of pages
+//     const totalPages = totalNotifications > 0 ? Math.ceil(totalNotifications / limit) : 0;
+
+//     // Get list of notifications
+//     const notifications = await prisma.notification.findMany({
+//       where: { userId },
+//       orderBy: { createdAt: sortOrder },
+//       skip: (page - 1) * limit,
+//       take: limit,
+//       include: {
+//         document: {
+//           include: {
+//             student: {
+//               select: {
+//                 id: true,
+//                 name: true,
+//                 email: true,
+//                 profilePicUrl: true,
+//                 studentAllocations: {  // Get tutor information
+//                   include: {
+//                     tutor: {
+//                       select: {
+//                         id: true,
+//                         name: true,
+//                         email: true,
+//                         profilePicUrl: true,
+//                       },
+//                     },
+//                   },
+//                 },
+//               },
+//             },
+//           },
+//         },
+//         blog: {
+//           select: {
+//             id: true,
+//             title: true,
+//             createdAt: true,
+//             author: {
+//               select: {
+//                 id: true,
+//                 name: true,
+//                 email: true,
+//                 profilePicUrl: true,
+//               }
+//             }
+//           }
+//         }
+//       },
+//     });
+
+//     // Create next & previous page links
+//     const nextPage = page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}&sort=${sortOrder}` : undefined;
+//     const previousPage = page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}&sort=${sortOrder}` : undefined;
+
+//     return {
+//       result: notifications.length,
+//       totalPages,
+//       totalNotifications,
+//       notifications,
+//       nextPage,
+//       previousPage,
+//     };
+//   } catch (error) {
+//     console.error('Error fetching notifications:', error);
+//     throw new BadRequestError('Failed to fetch notifications');
+//   }
+// };
+
 export const getNotificationsByUserId = async (
-  userId: string, 
-  page: number, 
+  userId: string,
+  page: number,
   limit: number,
   sortOrder: 'asc' | 'desc' = 'desc',
   baseUrl: string
 ): Promise<{
-    notifications: Notification[];
-    totalPages: number;
-    totalNotifications: number;
-    result: number;
-    nextPage?: string;
-    previousPage?: string;
-  }> => {
+  notifications: any[]; // Use any[] for flexibility with custom data
+  totalPages: number;
+  totalNotifications: number;
+  result: number;
+  nextPage?: string;
+  previousPage?: string;
+}> => {
   try {
     // Get total number of user notifications
     const totalNotifications = await prisma.notification.count({
       where: { userId },
-    })
+    });
 
     // Calculate total number of pages
     const totalPages = totalNotifications > 0 ? Math.ceil(totalNotifications / limit) : 0;
 
-    // Get list of notifications
-    const notifications = await prisma.notification.findMany({
-      where: { userId },
-      orderBy: { createdAt: sortOrder },
-      skip: (page - 1) * limit,
-      take: limit,
-      include: {
-        document: {
-          include: {
-            student: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                profilePicUrl: true,
-                studentAllocations: {  // Get tutor information
-                  include: {
-                    tutor: {
-                      select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        profilePicUrl: true,
+    // Check user's role
+    const userRole = await prisma.role.findFirst({
+      where: { users: { some: { id: userId } } },
+      select: { code: true },
+    });
+
+    if (!userRole) {
+      throw new BadRequestError("User role not found");
+    }
+
+    let selectOptions;
+
+    switch (userRole.code) {
+      case "TUTOR":
+        // For tutors: return notification info and student data
+        selectOptions = {
+          id: true,
+          title: true,
+          message: true,
+          isRead: true,
+          type: true,
+          createdAt: true,
+          updatedAt: true,
+          document: {
+            select: {
+              student: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  profilePicUrl: true,
+                },
+              },
+            },
+          },
+        };
+        break;
+
+      case "STUDENT":
+        // For students: return notification info and tutor data
+        selectOptions = {
+          id: true,
+          title: true,
+          message: true,
+          isRead: true,
+          type: true,
+          createdAt: true,
+          updatedAt: true,
+          document: {
+            select: {
+              student: {
+                select: {
+                  studentAllocations: {
+                    select: {
+                      tutor: {
+                        select: {
+                          id: true,
+                          name: true,
+                          email: true,
+                          profilePicUrl: true,
+                        },
                       },
                     },
                   },
@@ -80,23 +206,45 @@ export const getNotificationsByUserId = async (
               },
             },
           },
-        },
-        blog: {
-          select: {
-            id: true,
-            title: true,
-            createdAt: true,
-            author: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                profilePicUrl: true,
-              }
-            }
-          }
-        }
-      },
+        };
+        break;
+
+      case "STAFF":
+        // For staff: return notification info and blog author data
+        selectOptions = {
+          id: true,
+          title: true,
+          message: true,
+          isRead: true,
+          type: true,
+          createdAt: true,
+          updatedAt: true,
+          blog: {
+            select: {
+              author: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  profilePicUrl: true,
+                },
+              },
+            },
+          },
+        };
+        break;
+
+      default:
+        throw new BadRequestError("Invalid user role");
+    }
+
+    // Get list of notifications with customized data
+    const notifications = await prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: sortOrder },
+      skip: (page - 1) * limit,
+      take: limit,
+      select: selectOptions,
     });
 
     // Create next & previous page links
