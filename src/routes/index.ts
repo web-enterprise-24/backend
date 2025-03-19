@@ -25,6 +25,7 @@ import comment from './tutoring/comment';
 import admin from './dashboard/admin';
 import student from './dashboard/student';
 import tutor from './dashboard/tutor';
+import meeting from './tutoring/meeting';
 
 const router = express.Router();
 
@@ -53,5 +54,6 @@ router.use('/comment', comment);
 router.use('/admin', admin);
 router.use('/student', student);
 router.use('/tutor', tutor);
+router.use('/meeting', meeting);
 
 export default router;
