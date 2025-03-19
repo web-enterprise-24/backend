@@ -56,6 +56,14 @@ router.get(
   }),
 );
 
+router.get(
+  '/tutor',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const meetings = await MeetingRepo.getMyTutorSchedule(req.user.id);
+    new SuccessResponse('Meeting schedule', meetings).send(res);
+  }),
+);
+
 // role student
 router.use(role(RoleCode.STUDENT));
 router.post(
