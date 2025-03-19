@@ -92,7 +92,15 @@ router.get(
   '/history',
   asyncHandler(async (req: ProtectedRequest, res) => {
     const { userId } = req.params;
-    const meetings = await MeetingRepo.getMeetingHistory(userId);
+    // check if user is tutor or student
+    const actionTriggerUser = await UserRepo.findByEmail(req.user.email || '');
+    if (!actionTriggerUser) {
+      throw new BadRequestError('User not found');
+    }
+    const isTutor = actionTriggerUser?.roles.some(
+      (role) => role.code === RoleCode.TUTOR,
+    );
+    const meetings = await MeetingRepo.getMeetingHistory(isTutor, userId);
     new SuccessResponse('Meeting history', meetings).send(res);
   }),
 );

@@ -191,9 +191,11 @@ model Meeting {
   start   DateTime
   end     DateTime
   status    Boolean  @default(true)
+  fileUrl   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   student   User     @relation(name: "StudentMeetings", fields: [studentId], references: [id])
   tutor     User     @relation(name: "TutorMeetings", fields: [tutorId], references: [id])
+
   accepted  Boolean  @default(false)
 }
