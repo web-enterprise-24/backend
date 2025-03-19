@@ -64,9 +64,10 @@ async function cancelMeeting(id: string) {
   return meeting;
 }
 
-async function acceptMeeting(id: string) {
+async function acceptMeeting(id: string, tutorId: string) {
+  console.log('🚀 ~ acceptMeeting ~ id:', id);
   const meeting = await prisma.meeting.update({
-    where: { id },
+    where: { id, tutorId },
     data: { accepted: true },
   });
   return meeting;

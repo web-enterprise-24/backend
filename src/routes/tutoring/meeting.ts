@@ -1,24 +1,3 @@
-/* Requirements:
-model Meeting {
-  id        String   @id @default(cuid())
-  studentId String
-  tutorId   String
-  start   DateTime
-  end     DateTime
-  status    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  student   User     @relation(name: "StudentMeetings", fields: [studentId], references: [id])
-  tutor     User     @relation(name: "TutorMeetings", fields: [tutorId], references: [id])
-}
-- I can see my tutor schedule
-- I can book a meeting with my tutor
-- I can see my meeting history
-- I can cancel a meeting
-- I can see my meeting details
-
-*/
-
 import { Router } from 'express';
 import MeetingRepo from '../../database/repository/MeetingRepo';
 import authentication from '../../auth/authentication';
@@ -27,10 +6,17 @@ import { ProtectedRequest } from '../../types/app-request';
 import { SuccessResponse } from '../../core/ApiResponse';
 import role from '../../helpers/role';
 import { RoleCode } from '../../database/model/Role';
+import schema from './schema';
+import validator from '../../helpers/validator';
+import authorization from '../../auth/authorization';
+import UserRepo from '../../database/repository/UserRepo';
+import { BadRequestError } from '../../core/ApiError';
 
 const router = Router();
 
 router.use(authentication);
+router.use(role(RoleCode.STUDENT, RoleCode.TUTOR));
+router.use(authorization);
 // router.post(
 //   '/',
 //   validator(schema.allocate),
@@ -64,10 +50,10 @@ router.get(
   }),
 );
 
-// role student
 router.use(role(RoleCode.STUDENT));
 router.post(
   '/',
+  validator(schema.createMeeting),
   asyncHandler(async (req: ProtectedRequest, res) => {
     const { start, end } = req.body;
     const meeting = await MeetingRepo.createMeeting(req.user.id, start, end);
@@ -75,6 +61,25 @@ router.post(
   }),
 );
 
+router.post(
+  '/accept',
+  validator(schema.acceptMeeting),
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const { meetingId } = req.body;
+    console.log('🚀 ~ asyncHandler ~ meetingId:', meetingId);
+    const tutorId = req.user.id;
+    const actionTriggerUser = await UserRepo.findByEmail(req.user.email || '');
+    if (
+      !actionTriggerUser?.roles.some((role) => role.code === RoleCode.TUTOR)
+    ) {
+      throw new BadRequestError(
+        'You are not authorized to perform this action',
+      );
+    }
+    const meeting = await MeetingRepo.acceptMeeting(meetingId, tutorId);
+    new SuccessResponse('Meeting accepted', meeting).send(res);
+  }),
+);
 router.get(
   '/history',
   asyncHandler(async (req: ProtectedRequest, res) => {
