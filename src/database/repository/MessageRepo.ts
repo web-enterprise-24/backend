@@ -100,7 +100,7 @@ async function getUserChats(userId: string, roleCode: string) {
         where: { users: { some: { id: user.id } } },
       });
       return { ...user, roles }; // Attach roles to user
-    })
+    }),
   );
 
   return usersWithRoles;
