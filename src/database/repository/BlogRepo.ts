@@ -43,7 +43,7 @@ async function create(blog: Blog): Promise<Blog> {
       createNotification({
         userId: staff.id,
         title: "A New Blog Created",
-        message: `${userName} has submitted a new blog: "${newBlog.title}.`,
+        message: `${userName} has submitted a new blog: ${newBlog.title}.`,
         type: "blog",
         blogId: newBlog.id,
       })

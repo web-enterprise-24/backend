@@ -62,6 +62,7 @@ export type UserInfo = {
   userId: string;
   userName: string | null;
   userEmail: string;
+  userAvatar: string | null;
 };
 
 // Defines the response type of the getNotificationsByUserId function
