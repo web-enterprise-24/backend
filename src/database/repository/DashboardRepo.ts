@@ -1,6 +1,3 @@
-// import prisma from "../prismaClient";
-
-import { get } from "lodash";
 import prisma from "../prismaClient";
 
 // // Average number of messages from all tutors in the last 7 days
@@ -234,6 +231,7 @@ import prisma from "../prismaClient";
 
 
 
+/*----Staff----*/
 
 // Get overview metrics for tutors, students, meetings, and messages
 async function getOverviewMetrics() {
@@ -395,8 +393,175 @@ async function getTutorPerformance() {
   return performance;
 }
 
+/*----Student----*/
+
+// Get student profile information including tutor name
+async function getStudentProfile(studentId: string) {
+  const student = await prisma.user.findUnique({
+    where: {
+      id: studentId,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      profilePicUrl: true,
+      studentAllocations: {
+        select: {
+          tutor: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profilePicUrl: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!student) {
+    throw new Error('Student not found');
+  }
+
+  const tutorName = student.studentAllocations[0]?.tutor
+    ? `${student.studentAllocations[0].tutor.name || ''}`.trim() || 'No Tutor Assigned' : 'No Tutor Assigned';
+
+  return {
+    name: `${student.name || ''}`.trim() || 'Unknown',
+    email: student.email,
+    profilePicUrl: student.profilePicUrl,
+    tutorName,
+  };
+}
+
+// Get overview metrics for a student
+async function getStudentOverviewMetrics(studentId: string) {
+  // Count total messages sent/received by the student
+  const messageCount = await prisma.message.count({
+    where: {
+      OR: [
+        { senderId: studentId },
+        { receiverId: studentId },
+      ],
+    },
+  });
+
+  // // Count completed meetings (allocations) for the student
+  // const meetingCount = await prisma.allocation.count({
+  //   where: {
+  //     studentId: studentId,
+  //     status: true, // Chỉ tính các allocation đang hoạt động
+  //   },
+  // });
+
+  // Count total documents uploaded by the student
+  const documentCount = await prisma.document.count({
+    where: {
+      studentId: studentId,
+    },
+  });
+
+  return {
+    messages: messageCount,
+    // meetings: meetingCount,
+    documents: documentCount,
+  };
+}
+
+// Get recent documents for a student
+async function getRecentDocuments(studentId: string, limit: number = 5) {
+  const documents = await prisma.document.findMany({
+    where: {
+      studentId: studentId,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    take: limit,
+    select: {
+      id: true,
+      fileName: true,
+      createdAt: true,
+    },
+  });
+
+  return documents.map((doc) => ({
+    id: doc.id,
+    fileName: doc.fileName,
+    uploadedAt: doc.createdAt,
+  }));
+}
+
+// Get activity distribution for a student
+async function getStudentActivity(studentId: string, timeRange: 'lastWeek' | 'lastMonth') {
+  const now = new Date();
+  let startDate: Date;
+
+  if (timeRange === 'lastWeek') {
+    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+  } else {
+    startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+  }
+
+  // Count messages in the time range
+  const messageCount = await prisma.message.count({
+    where: {
+      OR: [
+        { senderId: studentId },
+        { receiverId: studentId },
+      ],
+      createdAt: {
+        gte: startDate,
+      },
+    },
+  });
+
+  // // Count meetings in the time range
+  // const meetingCount = await prisma.allocation.count({
+  //   where: {
+  //     studentId: studentId,
+  //     startAt: {
+  //       gte: startDate,
+  //     },
+  //     status: true,
+  //   },
+  // });
+
+  // Count documents in the time range
+  const documentCount = await prisma.document.count({
+    where: {
+      studentId: studentId,
+      createdAt: {
+        gte: startDate,
+      },
+    },
+  });
+
+  // Calculate total for percentage distribution
+  // const total = messageCount + meetingCount + documentCount;
+  const total = messageCount + documentCount;
+
+  return {
+    messages: total > 0 ? (messageCount / total) * 100 : 0, // Percentage
+    // meetings: total > 0 ? (meetingCount / total) * 100 : 0, // Percentage
+    documents: total > 0 ? (documentCount / total) * 100 : 0, // Percentage
+    rawCounts: {
+      messages: messageCount,
+      // meetings: meetingCount,
+      documents: documentCount,
+    },
+  };
+}
+/*----Tutor----*/
+
 export default {
   getOverviewMetrics,
   getTutorActivity,
   getTutorPerformance,
+  getStudentProfile,
+  getStudentOverviewMetrics,
+  getRecentDocuments,
+  getStudentActivity,
 }

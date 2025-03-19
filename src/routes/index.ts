@@ -23,6 +23,7 @@ import notification from './tutoring/notification';
 import feedback from './tutoring/feedback';
 import comment from './tutoring/comment';
 import admin from './dashboard/admin';
+import student from './dashboard/student';
 
 const router = express.Router();
 
@@ -49,5 +50,6 @@ router.use('/notification', notification);
 router.use('/feedback', feedback);
 router.use('/comment', comment);
 router.use('/admin', admin);
+router.use('/student', student);
 
 export default router;

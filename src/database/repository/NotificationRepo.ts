@@ -258,6 +258,7 @@ export const getNotificationsByUserId = async (
               userId: student.id,
               userName: student.name,
               userEmail: student.email,
+              userAvatar: student.profilePicUrl,
             };
           }
           break;
@@ -270,6 +271,7 @@ export const getNotificationsByUserId = async (
               userId: tutor.id,
               userName: tutor.name,
               userEmail: tutor.email,
+              userAvatar: tutor.profilePicUrl,
             };
           }
           break;
@@ -282,6 +284,7 @@ export const getNotificationsByUserId = async (
               userId: author.id,
               userName: author.name,
               userEmail: author.email,
+              userAvatar: author.profilePicUrl,
             };
           }
           break;
