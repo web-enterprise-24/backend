@@ -45,6 +45,14 @@ router.get(
 router.get(
   '/tutor',
   asyncHandler(async (req: ProtectedRequest, res) => {
+    const actionTriggerUser = await UserRepo.findByEmail(req.user.email || '');
+    if (
+      !actionTriggerUser?.roles.some((role) => role.code === RoleCode.STUDENT)
+    ) {
+      throw new BadRequestError(
+        'You are not authorized to perform this action',
+      );
+    }
     const meetings = await MeetingRepo.getMyTutorSchedule(req.user.id);
     new SuccessResponse('Meeting schedule', meetings).send(res);
   }),
