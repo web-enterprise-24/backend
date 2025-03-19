@@ -5,7 +5,6 @@ import { SuccessResponse } from '../../core/ApiResponse';
 import authentication from '../../auth/authentication';
 import DashboardRepo from '../../database/repository/DashboardRepo';
 import { BadRequestError } from '../../core/ApiError';
-import { resourceLimits } from 'worker_threads';
 
 const router = express.Router();
 
