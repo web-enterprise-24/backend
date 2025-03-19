@@ -1,6 +1,7 @@
 import { Notification } from "@prisma/client";
 import prisma from "../prismaClient";
 import { BadRequestError } from "../../core/ApiError";
+import { NotificationResponse, NotificationStaff, NotificationStudent, NotificationTutor, UserInfo } from "../model/Types";
 
 export const createNotification = async (data: {
   userId: string;
@@ -121,24 +122,14 @@ export const getNotificationsByUserId = async (
   limit: number,
   sortOrder: 'asc' | 'desc' = 'desc',
   baseUrl: string
-): Promise<{
-  notifications: any[]; // Use any[] for flexibility with custom data
-  totalPages: number;
-  totalNotifications: number;
-  result: number;
-  nextPage?: string;
-  previousPage?: string;
-}> => {
+): Promise<NotificationResponse> => {
   try {
-    // Get total number of user notifications
     const totalNotifications = await prisma.notification.count({
       where: { userId },
     });
 
-    // Calculate total number of pages
     const totalPages = totalNotifications > 0 ? Math.ceil(totalNotifications / limit) : 0;
 
-    // Check user's role
     const userRole = await prisma.role.findFirst({
       where: { users: { some: { id: userId } } },
       select: { code: true },
@@ -148,11 +139,10 @@ export const getNotificationsByUserId = async (
       throw new BadRequestError("User role not found");
     }
 
-    let selectOptions;
+    let selectOptions: any;
 
     switch (userRole.code) {
       case "TUTOR":
-        // For tutors: return notification info and student data
         selectOptions = {
           id: true,
           title: true,
@@ -177,7 +167,6 @@ export const getNotificationsByUserId = async (
         break;
 
       case "STUDENT":
-        // For students: return notification info and tutor data
         selectOptions = {
           id: true,
           title: true,
@@ -210,7 +199,6 @@ export const getNotificationsByUserId = async (
         break;
 
       case "STAFF":
-        // For staff: return notification info and blog author data
         selectOptions = {
           id: true,
           title: true,
@@ -238,24 +226,82 @@ export const getNotificationsByUserId = async (
         throw new BadRequestError("Invalid user role");
     }
 
-    // Get list of notifications with customized data
     const notifications = await prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: sortOrder },
       skip: (page - 1) * limit,
       take: limit,
       select: selectOptions,
+    }) as unknown as (NotificationTutor | NotificationStudent | NotificationStaff)[];
+
+    // Transform data with status of literal type
+    const customizedNotifications = notifications.map(notification => {
+      const status: 'read' | 'unread' = notification.isRead ? 'read' : 'unread';
+
+      const baseData = {
+        id: notification.id,
+        title: notification.title.toUpperCase(),
+        message: notification.message,
+        status, // Use the casted status variable
+        timestamp: notification.createdAt.toISOString(),
+        type: notification.type || 'general',
+      };
+
+      let userInfo: UserInfo | null = null;
+
+      switch (userRole.code) {
+        case "TUTOR": {
+          const tutorNotif = notification as NotificationTutor;
+          const student = tutorNotif.document?.student;
+          if (student) {
+            userInfo = {
+              userId: student.id,
+              userName: student.name,
+              userEmail: student.email,
+            };
+          }
+          break;
+        }
+        case "STUDENT": {
+          const studentNotif = notification as NotificationStudent;
+          const tutor = studentNotif.document?.student?.studentAllocations?.[0]?.tutor;
+          if (tutor) {
+            userInfo = {
+              userId: tutor.id,
+              userName: tutor.name,
+              userEmail: tutor.email,
+            };
+          }
+          break;
+        }
+        case "STAFF": {
+          const staffNotif = notification as NotificationStaff;
+          const author = staffNotif.blog?.author;
+          if (author) {
+            userInfo = {
+              userId: author.id,
+              userName: author.name,
+              userEmail: author.email,
+            };
+          }
+          break;
+        }
+      }
+
+      return {
+        ...baseData,
+        userInfo,
+      };
     });
 
-    // Create next & previous page links
     const nextPage = page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}&sort=${sortOrder}` : undefined;
     const previousPage = page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}&sort=${sortOrder}` : undefined;
 
     return {
-      result: notifications.length,
+      result: customizedNotifications.length,
       totalPages,
       totalNotifications,
-      notifications,
+      notifications: customizedNotifications,
       nextPage,
       previousPage,
     };
