@@ -554,7 +554,375 @@ async function getStudentActivity(studentId: string, timeRange: 'lastWeek' | 'la
     },
   };
 }
+
 /*----Tutor----*/
+
+// Get overview metrics for a tutor
+async function getTutorOverviewMetrics(tutorId: string) {
+  const now = new Date();
+
+  // Count total tutees assigned to the tutor
+  const tuteeCount = await prisma.allocation.count({
+    where: {
+      tutorId: tutorId,
+      status: true, // Chỉ tính các allocation đang hoạt động
+    },
+  });
+
+  // Count total messages sent/received by the tutor
+  const messageCount = await prisma.message.count({
+    where: {
+      OR: [
+        { senderId: tutorId },
+        { receiverId: tutorId },
+      ],
+    },
+  });
+
+  // // Count upcoming meetings (allocations starting after now)
+  // const upcomingMeetingCount = await prisma.allocation.count({
+  //   where: {
+  //     tutorId: tutorId,
+  //     startAt: {
+  //       gt: now, // Chỉ lấy các cuộc họp trong tương lai
+  //     },
+  //     status: true,
+  //   },
+  // });
+
+  // Count documents needing feedback (documents without comments from the tutor)
+  const documentsNeedingFeedback = await prisma.document.count({
+    where: {
+      student: {
+        studentAllocations: {
+          some: {
+            tutorId: tutorId,
+          },
+        },
+      },
+      comments: {
+        none: {
+          userId: tutorId, // Không có comment nào từ tutor
+        },
+      },
+    },
+  });
+
+  return {
+    totalTutees: tuteeCount,
+    messages: messageCount,
+    // upcomingMeetings: upcomingMeetingCount,
+    documentsNeedingFeedback,
+  };
+}
+
+// Get tutees information for a tutor with pagination
+// DashboardRepo.ts
+// Get tutees information for a tutor with pagination and links
+async function getTuteesInformation(tutorId: string, page: number, limit: number, baseUrl: string) {
+  const skip = (page - 1) * limit;
+
+  // Fetch tutees with pagination
+  const tutees = await prisma.user.findMany({
+    where: {
+      studentAllocations: {
+        some: {
+          tutorId: tutorId,
+          status: true,
+        },
+      },
+    },
+    skip: skip,
+    take: limit,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      profilePicUrl: true,
+    },
+  });
+
+  // Count total tutees for pagination
+  const totalTutees = await prisma.user.count({
+    where: {
+      studentAllocations: {
+        some: {
+          tutorId: tutorId,
+          status: true,
+        },
+      },
+    },
+  });
+
+  // Calculate total pages
+  const totalPages = Math.ceil(totalTutees / limit);
+
+  // Create pagination links
+  const pagination: { [key: string]: string | null } = {
+    nextPage: page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : null,
+    previousPage: page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : null,
+  };
+
+  // Return formatted response
+  return {
+    totalPages,
+    currentPage: page,
+    totalTutees,
+    pagination,
+    tutees: tutees.map((tutee) => ({
+      id: tutee.id,
+      name: tutee.name || 'Unknown',
+      email: tutee.email,
+      avatar: tutee.profilePicUrl || 'default-avatar-url',
+    })),
+  };
+}
+
+// // Get upcoming meetings for a tutor
+// async function getUpcomingMeetings(tutorId: string, limit: number = 3) {
+//   const now = new Date();
+
+//   const meetings = await prisma.allocation.findMany({
+//     where: {
+//       tutorId: tutorId,
+//       startAt: {
+//         gt: now, // Chỉ lấy các cuộc họp trong tương lai
+//       },
+//       status: true,
+//     },
+//     orderBy: {
+//       startAt: 'asc', // Sắp xếp theo thời gian bắt đầu gần nhất
+//     },
+//     take: limit,
+//     select: {
+//       id: true,
+//       startAt: true,
+//       student: {
+//         select: {
+//           firstName: true,
+//           lastName: true,
+//         },
+//       },
+//     },
+//   });
+
+//   return meetings.map((meeting) => ({
+//     id: meeting.id,
+//     title: `Meeting with ${meeting.student.firstName || ''} ${meeting.student.lastName || ''}`.trim(),
+//     startAt: meeting.startAt,
+//     location: 'Virtual', // Có thể thêm trường location vào model Allocation nếu cần
+//   }));
+// }
+
+// Get recently uploaded documents by tutees
+async function getRecentlyUploadedDocuments(tutorId: string, limit: number = 3) {
+  const documents = await prisma.document.findMany({
+    where: {
+      student: {
+        studentAllocations: {
+          some: {
+            tutorId: tutorId,
+          },
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc', // Sắp xếp theo ngày tải lên mới nhất
+    },
+    take: limit,
+    select: {
+      id: true,
+      fileName: true,
+      createdAt: true,
+      student: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePicUrl: true,
+        },
+      },
+    },
+  });
+
+  return documents.map((doc) => ({
+    id: doc.id,
+    title: doc.fileName,
+    name: doc.student.name || 'Unknown',
+    email: doc.student.email,
+    avatar: doc.student.profilePicUrl || 'default-avatar-url',
+    uploadedAt: doc.createdAt,
+  }));
+}
+
+// Get tutees activity for a tutor
+async function getTuteesActivity(tutorId: string, timeRange: 'lastWeek' | 'lastMonth') {
+  const now = new Date();
+  let startDate: Date;
+  let interval: 'day' | 'week';
+
+  if (timeRange === 'lastWeek') {
+    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+    interval = 'day';
+  } else {
+    startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+    interval = 'week';
+  }
+
+  const tutees = await prisma.user.findMany({
+    where: {
+      studentAllocations: {
+        some: {
+          tutorId: tutorId,
+          status: true,
+        },
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const tuteeIds = tutees.map((tutee) => tutee.id);
+
+  // Define intervals for the chart
+  const intervals = [];
+  if (interval === 'day') {
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
+      intervals.push({ start: date, label: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) });
+    }
+  } else {
+    for (let i = 0; i < 4; i++) {
+      const start = new Date(startDate.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+      intervals.push({ start, label: `Week ${i + 1}` });
+    }
+  }
+
+  const activity = await Promise.all(
+    intervals.map(async (intervalObj) => { // Renamed to avoid confusion
+      const end = new Date(intervalObj.start.getTime() + (interval === 'day' ? 1 : 7) * 24 * 60 * 60 * 1000);
+
+      const messages = await prisma.message.count({
+        where: {
+          OR: [
+            { senderId: { in: tuteeIds } },
+            { receiverId: { in: tuteeIds } },
+          ],
+          createdAt: {
+            gte: intervalObj.start,
+            lt: end,
+          },
+        },
+      });
+
+      const meetings = await prisma.allocation.count({
+        where: {
+          studentId: { in: tuteeIds },
+          startAt: {
+            gte: intervalObj.start,
+            lt: end,
+          },
+        },
+      });
+
+      const documents = await prisma.document.count({
+        where: {
+          studentId: { in: tuteeIds },
+          createdAt: {
+            gte: intervalObj.start,
+            lt: end,
+          },
+        },
+      });
+
+      return {
+        label: intervalObj.label,
+        messages,
+        meetings,
+        documents,
+      };
+    })
+  );
+
+  return activity;
+}
+
+// Get document feedback analytics for a tutor
+async function getDocumentFeedbackAnalytics(tutorId: string, timeRange: 'thisWeek' | 'thisMonth') {
+  const now = new Date();
+  let startDate: Date;
+
+  if (timeRange === 'thisWeek') {
+    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+  } else {
+    startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+  }
+
+  const tutees = await prisma.user.findMany({
+    where: {
+      studentAllocations: {
+        some: {
+          tutorId: tutorId,
+          status: true,
+        },
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const tuteeIds = tutees.map((tutee) => tutee.id);
+
+  // Define weekly intervals
+  const weeks = [];
+  for (let i = 0; i < 4; i++) {
+    const start = new Date(startDate.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+    weeks.push({ start, label: `Week ${i + 1}` });
+  }
+
+  const analytics = await Promise.all(
+    weeks.map(async (week, index) => {
+      const end = new Date(week.start.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+      // Count documents received in this week
+      const documentsReceived = await prisma.document.count({
+        where: {
+          studentId: { in: tuteeIds },
+          createdAt: {
+            gte: week.start,
+            lt: end,
+          },
+        },
+      });
+
+      // Count documents with feedback provided in this week
+      const feedbackProvided = await prisma.document.count({
+        where: {
+          studentId: { in: tuteeIds },
+          createdAt: {
+            gte: week.start,
+            lt: end,
+          },
+          comments: {
+            some: {
+              userId: tutorId,
+            },
+          },
+        },
+      });
+
+      return {
+        label: week.label,
+        documentsReceived,
+        feedbackProvided,
+      };
+    })
+  );
+
+  return analytics;
+}
 
 export default {
   getOverviewMetrics,
@@ -564,4 +932,10 @@ export default {
   getStudentOverviewMetrics,
   getRecentDocuments,
   getStudentActivity,
+  getTutorOverviewMetrics,
+  getTuteesInformation,
+  // getUpcomingMeetings,
+  getRecentlyUploadedDocuments,
+  getTuteesActivity,
+  getDocumentFeedbackAnalytics,
 }
