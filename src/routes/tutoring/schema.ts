@@ -9,4 +9,11 @@ export default {
     receiverId: Joi.string().required(),
     content: Joi.string().required(),
   }),
+  acceptMeeting: Joi.object().keys({
+    meetingId: Joi.string().required(),
+  }),
+  createMeeting: Joi.object().keys({
+    start: Joi.date().required(),
+    end: Joi.date().required(),
+  }),
 };

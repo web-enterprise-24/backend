@@ -7,7 +7,6 @@ import DocumentRepo, {
   uploadFile,
 } from '../../database/repository/DocumentRepo';
 import { SuccessResponse } from '../../core/ApiResponse';
-import UserRepo from '../../database/repository/UserRepo';
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });

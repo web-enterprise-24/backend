@@ -7,6 +7,17 @@ async function createMeeting(studentId: string, start: Date, end: Date) {
   if (!findTutor) {
     throw new BadRequestError('Tutor not found');
   }
+  // check if the time is available || deny if overlap
+  const isAvailable = await prisma.meeting.findFirst({
+    where: {
+      tutorId: findTutor.id,
+      start: { lte: end },
+      end: { gte: start },
+    },
+  });
+  if (isAvailable) {
+    throw new BadRequestError('Time is not available');
+  }
   const meeting = await prisma.meeting.create({
     data: {
       studentId,
@@ -20,6 +31,9 @@ async function createMeeting(studentId: string, start: Date, end: Date) {
 
 async function getMyTutorSchedule(studentId: string) {
   const myTutor = await AllocateRepo.getMyTutor(studentId);
+  if (!myTutor) {
+    throw new BadRequestError('Tutor not found');
+  }
   const meetings = await prisma.meeting.findMany({
     where: { tutorId: myTutor?.id },
     orderBy: { start: 'desc' },
@@ -50,9 +64,10 @@ async function cancelMeeting(id: string) {
   return meeting;
 }
 
-async function acceptMeeting(id: string) {
+async function acceptMeeting(id: string, tutorId: string) {
+  console.log('🚀 ~ acceptMeeting ~ id:', id);
   const meeting = await prisma.meeting.update({
-    where: { id },
+    where: { id, tutorId },
     data: { accepted: true },
   });
   return meeting;
