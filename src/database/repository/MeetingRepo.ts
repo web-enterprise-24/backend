@@ -9,6 +9,7 @@ async function createMeeting(studentId: string, start: Date, end: Date) {
   }
   const meeting = await prisma.meeting.create({
     data: {
+      studentId,
       tutorId: findTutor.id,
       start,
       end,
