@@ -54,10 +54,10 @@ async function getMySchedule(userId: string) {
   return meetings;
 }
 
-async function getMeetingHistory(userId: string) {
+async function getMeetingHistory(isTutor: boolean, userId: string) {
   const meetings = await prisma.meeting.findMany({
     where: {
-      studentId: userId,
+      ...(isTutor ? { tutorId: userId } : { studentId: userId }),
       end: { lte: new Date() },
     },
     include: {
