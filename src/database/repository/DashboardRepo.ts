@@ -617,8 +617,6 @@ async function getTutorOverviewMetrics(tutorId: string) {
 }
 
 // Get tutees information for a tutor with pagination
-// DashboardRepo.ts
-// Get tutees information for a tutor with pagination and links
 async function getTuteesInformation(tutorId: string, page: number, limit: number, baseUrl: string) {
   const skip = (page - 1) * limit;
 
