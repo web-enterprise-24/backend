@@ -29,6 +29,15 @@ router.get(
 );
 
 router.get(
+  '/upcomingMeetings',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const studentId = req.user.id;
+    const meetings = await DashboardRepo.getUpcomingMeetingsForStudent(studentId);
+    new SuccessResponse('Success', { meetings }).send(res);
+  })
+);
+
+router.get(
   '/recentDocuments',
   asyncHandler(async (req: ProtectedRequest, res) => {
     const studentId = req.user.id;
