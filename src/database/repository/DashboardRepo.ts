@@ -654,12 +654,14 @@ async function getDocumentFeedbackAnalytics(tutorId: string, timeRange: 'thisWee
   const now = new Date();
   let startDate: Date;
 
+  // efine start date based on timeRange
   if (timeRange === 'thisWeek') {
-    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 ngày trước
   } else {
-    startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+    startDate = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000); // 28 ngày trước (4 tuần)
   }
 
+  // Get the tutor's list of tutees
   const tutees = await prisma.user.findMany({
     where: {
       studentAllocations: {
@@ -676,34 +678,52 @@ async function getDocumentFeedbackAnalytics(tutorId: string, timeRange: 'thisWee
 
   const tuteeIds = tutees.map((tutee) => tutee.id);
 
-  // Define weekly intervals
-  const weeks = [];
-  for (let i = 0; i < 4; i++) {
-    const start = new Date(startDate.getTime() + i * 7 * 24 * 60 * 60 * 1000);
-    weeks.push({ start, label: `Week ${i + 1}` });
+  // Define intervals
+  const intervals = [];
+  if (timeRange === 'thisWeek') {
+    // Chia theo ngày trong tuần (7 ngày)
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
+      intervals.push({
+        start: day,
+        label: day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      });
+    }
+  } else {
+    // Divide by week in month (4 weeks)
+    for (let i = 0; i < 4; i++) {
+      const weekStart = new Date(startDate.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+      intervals.push({
+        start: weekStart,
+        label: `Week ${i + 1}`,
+      });
+    }
   }
 
+  // Calculate data for each time period
   const analytics = await Promise.all(
-    weeks.map(async (week, index) => {
-      const end = new Date(week.start.getTime() + 7 * 24 * 60 * 60 * 1000);
+    intervals.map(async (interval) => {
+      const end = new Date(
+        interval.start.getTime() + (timeRange === 'thisWeek' ? 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000)
+      ); // 1 day for this Week, 7 days for this Month
 
-      // Count documents received in this week
+      // Count the number of documents received during this period
       const documentsReceived = await prisma.document.count({
         where: {
           studentId: { in: tuteeIds },
           createdAt: {
-            gte: week.start,
+            gte: interval.start,
             lt: end,
           },
         },
       });
 
-      // Count documents with feedback provided in this week
+      // Count the number of documents that were responded to during this time period
       const feedbackProvided = await prisma.document.count({
         where: {
           studentId: { in: tuteeIds },
           createdAt: {
-            gte: week.start,
+            gte: interval.start,
             lt: end,
           },
           comments: {
@@ -715,7 +735,7 @@ async function getDocumentFeedbackAnalytics(tutorId: string, timeRange: 'thisWee
       });
 
       return {
-        label: week.label,
+        label: interval.label,
         documentsReceived,
         feedbackProvided,
       };
