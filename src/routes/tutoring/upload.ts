@@ -16,7 +16,7 @@ router.use(authentication);
 router.post(
   '/',
   upload.single('file'),
-  asyncHandler(async (req: ProtectedRequest, res) => {
+  asyncHandler(async (req: ProtectedRequest & { file: any }, res) => {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
