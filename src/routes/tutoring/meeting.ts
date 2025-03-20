@@ -105,7 +105,7 @@ router.get(
   }),
 );
 
-router.post(
+router.delete(
   '/cancel',
   asyncHandler(async (req: ProtectedRequest, res) => {
     const { meetingId } = req.body;
