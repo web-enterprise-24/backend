@@ -16,4 +16,8 @@ export default {
     start: Joi.date().required(),
     end: Joi.date().required(),
   }),
+  updateFileUrl: Joi.object().keys({
+    meetingId: Joi.string().required(),
+    fileUrl: Joi.string().required(),
+  }),
 };

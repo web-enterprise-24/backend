@@ -114,6 +114,18 @@ async function acceptMeeting(id: string, tutorId: string) {
   return meeting;
 }
 
+async function updateFileUrl(meetingId: string, fileUrl: string) {
+  try {
+    const updated = await prisma.meeting.update({
+      where: { id: meetingId, accepted: true },
+      data: { fileUrl },
+    });
+    return updated;
+  } catch (error) {
+    console.log('🚀 ~ updateFileUrl ~ error:', error);
+    throw new BadRequestError('Meeting not found');
+  }
+}
 export default {
   createMeeting,
   getMyTutorSchedule,
@@ -121,4 +133,5 @@ export default {
   getMeetingHistory,
   cancelMeeting,
   acceptMeeting,
+  updateFileUrl,
 };

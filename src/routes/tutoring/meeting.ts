@@ -70,6 +70,24 @@ router.post(
 );
 
 router.post(
+  '/record',
+  validator(schema.updateFileUrl),
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const actionTriggerUser = await UserRepo.findByEmail(req.user.email || '');
+    if (
+      !actionTriggerUser?.roles.some((role) => role.code === RoleCode.TUTOR)
+    ) {
+      throw new BadRequestError(
+        'You are not authorized to perform this action',
+      );
+    }
+    const { meetingId, fileUrl } = req.body;
+    const meeting = await MeetingRepo.updateFileUrl(meetingId, fileUrl);
+    new SuccessResponse('Meeting record updated', meeting).send(res);
+  }),
+);
+
+router.post(
   '/accept',
   validator(schema.acceptMeeting),
   asyncHandler(async (req: ProtectedRequest, res) => {
