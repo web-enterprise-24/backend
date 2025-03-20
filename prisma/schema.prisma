@@ -196,6 +196,5 @@ model Meeting {
   updatedAt DateTime @updatedAt
   student   User     @relation(name: "StudentMeetings", fields: [studentId], references: [id])
   tutor     User     @relation(name: "TutorMeetings", fields: [tutorId], references: [id])
-
   accepted  Boolean  @default(false)
 }
