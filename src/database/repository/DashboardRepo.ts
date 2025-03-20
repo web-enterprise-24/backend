@@ -449,13 +449,12 @@ async function getStudentOverviewMetrics(studentId: string) {
     },
   });
 
-  // // Count completed meetings (allocations) for the student
-  // const meetingCount = await prisma.allocation.count({
-  //   where: {
-  //     studentId: studentId,
-  //     status: true, // Chỉ tính các allocation đang hoạt động
-  //   },
-  // });
+  // Count meetings for the student
+  const meetingCount = await prisma.meeting.count({
+    where: {
+      studentId: studentId,
+    },
+  });
 
   // Count total documents uploaded by the student
   const documentCount = await prisma.document.count({
@@ -466,9 +465,47 @@ async function getStudentOverviewMetrics(studentId: string) {
 
   return {
     messages: messageCount,
-    // meetings: meetingCount,
+    meetings: meetingCount,
     documents: documentCount,
   };
+}
+
+// Get upcoming meetings for a student
+async function getUpcomingMeetings(studentId: string, limit: number = 3) {
+  const now = new Date();
+
+  const meetings = await prisma.meeting.findMany({
+    where: {
+      studentId: studentId,
+      start: {
+        gt: now, // Only fetch meetings in the future
+      },
+      status: true, // Only active meetings
+    },
+    orderBy: {
+      start: 'asc', // Sort by start time, nearest first
+    },
+    take: limit,
+    select: {
+      id: true,
+      start: true,
+      end: true,
+      fileUrl: true, // Could be used to determine if it's virtual or in-person
+      tutor: {
+        select: {
+          name:true
+        },
+      },
+    },
+  });
+
+  return meetings.map((meeting) => ({
+    id: meeting.id,
+    title: `Meeting with tutor ${meeting.tutor.name || ''}`.trim() || 'Tutor Meeting',
+    startAt: meeting.start,
+    endAt: meeting.end,
+    location: meeting.fileUrl ? 'Virtual' : 'In-Person', // Assuming fileUrl indicates a virtual meeting link
+  }));
 }
 
 // Get recent documents for a student
@@ -520,15 +557,11 @@ async function getStudentActivity(studentId: string, timeRange: 'lastWeek' | 'la
   });
 
   // // Count meetings in the time range
-  // const meetingCount = await prisma.allocation.count({
-  //   where: {
-  //     studentId: studentId,
-  //     startAt: {
-  //       gte: startDate,
-  //     },
-  //     status: true,
-  //   },
-  // });
+  const meetingCount = await prisma.meeting.count({
+    where: {
+      studentId: studentId,
+    },
+  });
 
   // Count documents in the time range
   const documentCount = await prisma.document.count({
@@ -546,11 +579,11 @@ async function getStudentActivity(studentId: string, timeRange: 'lastWeek' | 'la
 
   return {
     messages: total > 0 ? (messageCount / total) * 100 : 0, // Percentage
-    // meetings: total > 0 ? (meetingCount / total) * 100 : 0, // Percentage
+    meetings: total > 0 ? (meetingCount / total) * 100 : 0, // Percentage
     documents: total > 0 ? (documentCount / total) * 100 : 0, // Percentage
     rawCounts: {
       messages: messageCount,
-      // meetings: meetingCount,
+      meetings: meetingCount,
       documents: documentCount,
     },
   };
@@ -929,6 +962,7 @@ export default {
   getTutorPerformance,
   getTutorProfile,
   getStudentOverviewMetrics,
+  getUpcomingMeetings,
   getRecentDocuments,
   getStudentActivity,
   getTutorOverviewMetrics,
