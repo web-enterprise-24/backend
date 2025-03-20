@@ -11,10 +11,10 @@ const router = express.Router();
 router.use(authentication);
 
 router.get(
-  '/studentProfile',
+  '/tutorProfile',
   asyncHandler(async (req: ProtectedRequest, res) => {
     const studentId = req.user.id;
-    const profile = await DashboardRepo.getStudentProfile(studentId);
+    const profile = await DashboardRepo.getTutorProfile(studentId);
     new SuccessResponse('Success', profile).send(res);
   })
 );
