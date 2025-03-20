@@ -10,6 +10,7 @@ export const createNotification = async (data: {
   type: string;
   documentId?: string;
   blogId?: string;
+  meetingId?: string;
 }): Promise<Notification> => {
   try {
     const notification = await prisma.notification.create({
@@ -25,96 +26,6 @@ export const createNotification = async (data: {
     throw new BadRequestError('Failed to create notification');
   }
 };
-
-// export const getNotificationsByUserId = async (
-//   userId: string, 
-//   page: number, 
-//   limit: number,
-//   sortOrder: 'asc' | 'desc' = 'desc',
-//   baseUrl: string
-// ): Promise<{
-//     notifications: Notification[];
-//     totalPages: number;
-//     totalNotifications: number;
-//     result: number;
-//     nextPage?: string;
-//     previousPage?: string;
-//   }> => {
-//   try {
-//     // Get total number of user notifications
-//     const totalNotifications = await prisma.notification.count({
-//       where: { userId },
-//     })
-
-//     // Calculate total number of pages
-//     const totalPages = totalNotifications > 0 ? Math.ceil(totalNotifications / limit) : 0;
-
-//     // Get list of notifications
-//     const notifications = await prisma.notification.findMany({
-//       where: { userId },
-//       orderBy: { createdAt: sortOrder },
-//       skip: (page - 1) * limit,
-//       take: limit,
-//       include: {
-//         document: {
-//           include: {
-//             student: {
-//               select: {
-//                 id: true,
-//                 name: true,
-//                 email: true,
-//                 profilePicUrl: true,
-//                 studentAllocations: {  // Get tutor information
-//                   include: {
-//                     tutor: {
-//                       select: {
-//                         id: true,
-//                         name: true,
-//                         email: true,
-//                         profilePicUrl: true,
-//                       },
-//                     },
-//                   },
-//                 },
-//               },
-//             },
-//           },
-//         },
-//         blog: {
-//           select: {
-//             id: true,
-//             title: true,
-//             createdAt: true,
-//             author: {
-//               select: {
-//                 id: true,
-//                 name: true,
-//                 email: true,
-//                 profilePicUrl: true,
-//               }
-//             }
-//           }
-//         }
-//       },
-//     });
-
-//     // Create next & previous page links
-//     const nextPage = page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}&sort=${sortOrder}` : undefined;
-//     const previousPage = page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}&sort=${sortOrder}` : undefined;
-
-//     return {
-//       result: notifications.length,
-//       totalPages,
-//       totalNotifications,
-//       notifications,
-//       nextPage,
-//       previousPage,
-//     };
-//   } catch (error) {
-//     console.error('Error fetching notifications:', error);
-//     throw new BadRequestError('Failed to fetch notifications');
-//   }
-// };
 
 export const getNotificationsByUserId = async (
   userId: string,
@@ -163,6 +74,21 @@ export const getNotificationsByUserId = async (
               },
             },
           },
+          meeting: {
+            select: {
+              id: true,
+              start: true,
+              end: true,
+              student: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  profilePicUrl: true,
+                },
+              },
+            },
+          },
         };
         break;
 
@@ -191,6 +117,21 @@ export const getNotificationsByUserId = async (
                       },
                     },
                   },
+                },
+              },
+            },
+          },
+          meeting: {
+            select: {
+              id: true,
+              start: true,
+              end: true,
+              tutor: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  profilePicUrl: true,
                 },
               },
             },
@@ -252,7 +193,15 @@ export const getNotificationsByUserId = async (
       switch (userRole.code) {
         case "TUTOR": {
           const tutorNotif = notification as NotificationTutor;
-          const student = tutorNotif.document?.student;
+          let student;
+      
+          if (tutorNotif.document?.student) {
+            student = tutorNotif.document.student;
+          }
+          else if (tutorNotif.meeting?.student) {
+            student = tutorNotif.meeting.student;
+          }
+      
           if (student) {
             userInfo = {
               userId: student.id,
@@ -265,7 +214,15 @@ export const getNotificationsByUserId = async (
         }
         case "STUDENT": {
           const studentNotif = notification as NotificationStudent;
-          const tutor = studentNotif.document?.student?.studentAllocations?.[0]?.tutor;
+          let tutor;
+      
+          if (studentNotif.document?.student?.studentAllocations?.[0]?.tutor) {
+            tutor = studentNotif.document.student.studentAllocations[0].tutor;
+          }
+          else if (studentNotif.meeting?.tutor) {
+            tutor = studentNotif.meeting.tutor;
+          }
+      
           if (tutor) {
             userInfo = {
               userId: tutor.id,
