@@ -26,12 +26,12 @@ async function getOverviewMetrics() {
     },
   });
 
-  // // Count total meetings (allocations)
-  // const meetingCount = await prisma.allocation.count({
-  //   where: {
-  //     status: true, // Chỉ tính các allocation đang hoạt động
-  //   },
-  // });
+  // Count total meetings
+  const meetingCount = await prisma.meeting.count({
+    where: {
+      status: true,
+    },
+  });
 
   // Count total messages
   const messageCount = await prisma.message.count();
@@ -39,7 +39,7 @@ async function getOverviewMetrics() {
   return {
     tutors: tutorCount,
     students: studentCount,
-    // meetings: meetingCount,
+    meetings: meetingCount,
     messages: messageCount,
   };
 }
@@ -115,7 +115,7 @@ async function getTutorActivity() {
   return activity;
 }
 
-// Get tutor performance (name, number of students, number of meetings)
+// Get tutor performance
 async function getTutorPerformance() {
   const tutors = await prisma.user.findMany({
     where: {
@@ -128,8 +128,6 @@ async function getTutorPerformance() {
     select: {
       id: true,
       name: true,
-      firstName: true,
-      lastName: true,
       tutorAllocations: {
         where: {
           status: true,
@@ -144,7 +142,7 @@ async function getTutorPerformance() {
       const studentCount = tutor.tutorAllocations.length;
 
       // Count meetings for this tutor
-      const meetingCount = await prisma.allocation.count({
+      const meetingCount = await prisma.meeting.count({
         where: {
           tutorId: tutor.id,
           status: true,
@@ -152,7 +150,7 @@ async function getTutorPerformance() {
       });
 
       return {
-        name: `${tutor.name || ''} ${tutor.firstName || ''} ${tutor.lastName || ''}`.trim() || 'Unknown',
+        name: tutor.name || 'Unknown',
         students: studentCount,
         meetings: meetingCount,
       };
@@ -222,6 +220,7 @@ async function getStudentOverviewMetrics(studentId: string) {
   const meetingCount = await prisma.meeting.count({
     where: {
       studentId: studentId,
+      status: true,
     },
   });
 
@@ -329,6 +328,7 @@ async function getStudentActivity(studentId: string, timeRange: 'lastWeek' | 'la
   const meetingCount = await prisma.meeting.count({
     where: {
       studentId: studentId,
+      status: true,
     },
   });
 
@@ -343,8 +343,7 @@ async function getStudentActivity(studentId: string, timeRange: 'lastWeek' | 'la
   });
 
   // Calculate total for percentage distribution
-  // const total = messageCount + meetingCount + documentCount;
-  const total = messageCount + documentCount;
+  const total = messageCount + meetingCount + documentCount;
 
   return {
     messages: total > 0 ? (messageCount / total) * 100 : 0, // Percentage
@@ -368,7 +367,7 @@ async function getTutorOverviewMetrics(tutorId: string) {
   const tuteeCount = await prisma.allocation.count({
     where: {
       tutorId: tutorId,
-      status: true, // Chỉ tính các allocation đang hoạt động
+      status: true,
     },
   });
 
@@ -386,6 +385,7 @@ async function getTutorOverviewMetrics(tutorId: string) {
   const meetingCount = await prisma.meeting.count({
     where: {
       tutorId: tutorId,
+      status: true,
     },
   });
 
@@ -474,8 +474,6 @@ async function getTuteesInformation(tutorId: string, page: number, limit: number
     })),
   };
 }
-
-// In DashboardRepo.ts
 
 // Get upcoming meetings for a tutor
 async function getUpcomingMeetingsForTutor(tutorId: string, limit: number = 3) {
