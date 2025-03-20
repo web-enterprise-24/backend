@@ -395,17 +395,14 @@ async function getTutorPerformance() {
 
 /*----Student----*/
 
-// Get student profile information including tutor name
-async function getStudentProfile(studentId: string) {
+// Get tutor profile information for a student
+async function getTutorProfile(studentId: string) {
+  // Find the student and their allocated tutor
   const student = await prisma.user.findUnique({
     where: {
       id: studentId,
     },
     select: {
-      id: true,
-      name: true,
-      email: true,
-      profilePicUrl: true,
       studentAllocations: {
         select: {
           tutor: {
@@ -421,18 +418,22 @@ async function getStudentProfile(studentId: string) {
     },
   });
 
+  // Throw error if student is not found
   if (!student) {
     throw new Error('Student not found');
   }
 
-  const tutorName = student.studentAllocations[0]?.tutor
-    ? `${student.studentAllocations[0].tutor.name || ''}`.trim() || 'No Tutor Assigned' : 'No Tutor Assigned';
+  // Check if a tutor is assigned
+  const tutor = student.studentAllocations[0]?.tutor;
+  if (!tutor) {
+    throw new Error('No tutor assigned to this student');
+  }
 
+  // Return tutor information
   return {
-    name: `${student.name || ''}`.trim() || 'Unknown',
-    email: student.email,
-    profilePicUrl: student.profilePicUrl,
-    tutorName,
+    name: tutor.name || 'Unknown',
+    email: tutor.email,
+    avatar: tutor.profilePicUrl || 'default-avatar-url',
   };
 }
 
@@ -926,7 +927,7 @@ export default {
   getOverviewMetrics,
   getTutorActivity,
   getTutorPerformance,
-  getStudentProfile,
+  getTutorProfile,
   getStudentOverviewMetrics,
   getRecentDocuments,
   getStudentActivity,
