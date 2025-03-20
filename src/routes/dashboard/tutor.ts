@@ -31,14 +31,14 @@ router.get(
   })
 );
 
-// router.get(
-//   '/upcomingMeetings/:tutorId',
-//   asyncHandler(async (req: ProtectedRequest, res) => {
-//     const tutorId = req.params.tutorId;
-//     const meetings = await DashboardRepo.getUpcomingMeetings(tutorId);
-//     new SuccessResponse('Success', { meetings }).send(res);
-//   })
-// );
+router.get(
+  '/upcomingMeetings',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const tutorId = req.user.id;
+    const meetings = await DashboardRepo.getUpcomingMeetingsForTutor(tutorId);
+    new SuccessResponse('Success', { meetings }).send(res);
+  })
+);
 
 router.get(
   '/recentlyUploadedDocuments',

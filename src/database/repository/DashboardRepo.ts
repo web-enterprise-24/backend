@@ -1,236 +1,5 @@
 import prisma from "../prismaClient";
 
-// // Average number of messages from all tutors in the last 7 days
-// async function getAverageMessagesPerTutor() {
-//   const sevenDaysAgo = new Date();
-//   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-//   // Get list of tutors
-//   const tutors = await prisma.user.findMany({
-//     where: {
-//       roles: {
-//         some: {
-//           code: 'TUTOR',
-//         },
-//       },
-//     },
-//     select: {
-//       id: true,
-//     },
-//   });
-
-//   // Count the number of messages from each tutor in the last 7 days
-//   const messageCounts = await Promise.all(
-//     tutors.map(async (tutor) => {
-//       const count = await prisma.message.count({
-//         where: {
-//           OR: [
-//             { senderId: tutor.id },
-//             { receiverId: tutor.id },
-//           ],
-//           createdAt: {
-//             gte: sevenDaysAgo,
-//           },
-//         },
-//       });
-//       return count;
-//     })
-//   );
-
-//   // Calculate the average number of messages
-//   const totalMessages = messageCounts.reduce((sum, count) => sum + count, 0);
-//   const average = tutors.length > 0 ? totalMessages / tutors.length : 0;
-//   return average;
-// }
-
-// // Average number of messages per tutor per day over the past 7 days
-// async function getAverageMessagesForPersonalTutor(tutorId: string) {
-//   const sevenDaysAgo = new Date();
-//   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-//   // Count total tutor messages in last 7 days
-//   const messageCount = await prisma.message.count({
-//     where: {
-//       OR: [
-//         { senderId: tutorId },
-//         { receiverId: tutorId },
-//       ],
-//       createdAt: {
-//         gte: sevenDaysAgo,
-//       },
-//     },
-//   });
-
-//   // Average per day
-//   const averagePerDay = messageCount / 7;
-//   return averagePerDay;
-// }
-
-// // List of students without tutors
-// async function getStudentsWithoutTutor() {
-//   const studentsWithoutTutor = await prisma.user.findMany({
-//     where: {
-//       roles: {
-//         some: {
-//           code: 'STUDENT',
-//         },
-//       },
-//       studentAllocations: {
-//         none: {},
-//       },
-//     },
-//     select: {
-//       id: true,
-//       name: true,
-//       email: true,
-//     },
-//   });
-//   return studentsWithoutTutor;
-// }
-
-// // List of students who have not interacted for 7 or 28 days
-// async function getInactiveStudents(days: number) {
-//   const dateThreshold = new Date();
-//   dateThreshold.setDate(dateThreshold.getDate() - days);
-
-//   const inactiveStudents = await prisma.user.findMany({
-//     where: {
-//       roles: {
-//         some: {
-//           code: 'STUDENT',
-//         },
-//       },
-//       AND: [
-//         {
-//           messages: {
-//             none: {
-//               createdAt: {
-//                 gte: dateThreshold,
-//               },
-//             },
-//           },
-//         },
-//         {
-//           receivedMessages: {
-//             none: {
-//               createdAt: {
-//                 gte: dateThreshold,
-//               },
-//             },
-//           },
-//         },
-//         {
-//           documents: {
-//             none: {
-//               createdAt: {
-//                 gte: dateThreshold,
-//               },
-//             },
-//           },
-//         },
-//       ],
-//     },
-//     select: {
-//       id: true,
-//       name: true,
-//       email: true,
-//     },
-//   });
-//   return inactiveStudents;
-// }
-
-// // Tutor interaction overview
-// async function getTutorInteractions(tutorId: string) {
-//   const tutees = await prisma.allocation.findMany({
-//     where: {
-//       tutorId: tutorId,
-//     },
-//     select: {
-//       student: {
-//         select: {
-//           id: true,
-//           name: true,
-//         },
-//       },
-//     },
-//   });
-
-//   const interactions = await Promise.all(
-//     tutees.map(async (tutee) => {
-//       const messageCount = await prisma.message.count({
-//         where: {
-//           OR: [
-//             { senderId: tutorId, receiverId: tutee.student.id },
-//             { senderId: tutee.student.id, receiverId: tutorId },
-//           ],
-//         },
-//       });
-//       const documentCount = await prisma.document.count({
-//         where: {
-//           studentId: tutee.student.id,
-//         },
-//       });
-//       return {
-//         student: tutee.student,
-//         messageCount,
-//         documentCount,
-//       };
-//     })
-//   );
-
-//   return interactions;
-// }
-
-// // Student interaction details
-// async function getStudentInteractions(studentId: string) {
-//   const messages = await prisma.message.findMany({
-//     where: {
-//       OR: [
-//         { senderId: studentId },
-//         { receiverId: studentId },
-//       ],
-//     },
-//     orderBy: {
-//       createdAt: 'desc',
-//     },
-//     select: {
-//       id: true,
-//       content: true,
-//       createdAt: true,
-//       sender: { select: { name: true } },
-//       receiver: { select: { name: true } },
-//     },
-//   });
-
-//   const documents = await prisma.document.findMany({
-//     where: {
-//       studentId: studentId,
-//     },
-//     orderBy: {
-//       createdAt: 'desc',
-//     },
-//     select: {
-//       id: true,
-//       fileName: true,
-//       fileUrl: true,
-//       createdAt: true,
-//     },
-//   });
-
-//   return { messages, documents };
-// }
-
-// export default {
-//   getAverageMessagesPerTutor,
-//   getAverageMessagesForPersonalTutor,
-//   getStudentsWithoutTutor,
-//   getInactiveStudents,
-//   getTutorInteractions,
-//   getStudentInteractions,
-// };
-
-
-
 /*----Staff----*/
 
 // Get overview metrics for tutors, students, meetings, and messages
@@ -471,7 +240,7 @@ async function getStudentOverviewMetrics(studentId: string) {
 }
 
 // Get upcoming meetings for a student
-async function getUpcomingMeetings(studentId: string, limit: number = 3) {
+async function getUpcomingMeetingsForStudent(studentId: string, limit: number = 3) {
   const now = new Date();
 
   const meetings = await prisma.meeting.findMany({
@@ -613,16 +382,12 @@ async function getTutorOverviewMetrics(tutorId: string) {
     },
   });
 
-  // // Count upcoming meetings (allocations starting after now)
-  // const upcomingMeetingCount = await prisma.allocation.count({
-  //   where: {
-  //     tutorId: tutorId,
-  //     startAt: {
-  //       gt: now, // Chỉ lấy các cuộc họp trong tương lai
-  //     },
-  //     status: true,
-  //   },
-  // });
+  // Count meetings for the tutor
+  const meetingCount = await prisma.meeting.count({
+    where: {
+      tutorId: tutorId,
+    },
+  });
 
   // Count documents needing feedback (documents without comments from the tutor)
   const documentsNeedingFeedback = await prisma.document.count({
@@ -645,7 +410,7 @@ async function getTutorOverviewMetrics(tutorId: string) {
   return {
     totalTutees: tuteeCount,
     messages: messageCount,
-    // upcomingMeetings: upcomingMeetingCount,
+    meetings: meetingCount,
     documentsNeedingFeedback,
   };
 }
@@ -710,41 +475,45 @@ async function getTuteesInformation(tutorId: string, page: number, limit: number
   };
 }
 
-// // Get upcoming meetings for a tutor
-// async function getUpcomingMeetings(tutorId: string, limit: number = 3) {
-//   const now = new Date();
+// In DashboardRepo.ts
 
-//   const meetings = await prisma.allocation.findMany({
-//     where: {
-//       tutorId: tutorId,
-//       startAt: {
-//         gt: now, // Chỉ lấy các cuộc họp trong tương lai
-//       },
-//       status: true,
-//     },
-//     orderBy: {
-//       startAt: 'asc', // Sắp xếp theo thời gian bắt đầu gần nhất
-//     },
-//     take: limit,
-//     select: {
-//       id: true,
-//       startAt: true,
-//       student: {
-//         select: {
-//           firstName: true,
-//           lastName: true,
-//         },
-//       },
-//     },
-//   });
+// Get upcoming meetings for a tutor
+async function getUpcomingMeetingsForTutor(tutorId: string, limit: number = 3) {
+  const now = new Date();
 
-//   return meetings.map((meeting) => ({
-//     id: meeting.id,
-//     title: `Meeting with ${meeting.student.firstName || ''} ${meeting.student.lastName || ''}`.trim(),
-//     startAt: meeting.startAt,
-//     location: 'Virtual', // Có thể thêm trường location vào model Allocation nếu cần
-//   }));
-// }
+  const meetings = await prisma.meeting.findMany({
+    where: {
+      tutorId: tutorId,
+      start: {
+        gt: now, // Only fetch meetings in the future
+      },
+      status: true, // Only active meetings
+    },
+    orderBy: {
+      start: 'asc', // Sort by start time, nearest first
+    },
+    take: limit,
+    select: {
+      id: true,
+      start: true,
+      end: true,
+      fileUrl: true, // Used to determine if the meeting is virtual
+      student: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  return meetings.map((meeting) => ({
+    id: meeting.id,
+    title: `Meeting with ${meeting.student.name || ''}`.trim() || 'Student Meeting',
+    startAt: meeting.start,
+    endAt: meeting.end,
+    location: meeting.fileUrl ? 'Virtual' : 'In-Person', // Assuming fileUrl indicates a virtual meeting link
+  }));
+}
 
 // Get recently uploaded documents by tutees
 async function getRecentlyUploadedDocuments(tutorId: string, limit: number = 3) {
@@ -848,13 +617,15 @@ async function getTuteesActivity(tutorId: string, timeRange: 'lastWeek' | 'lastM
         },
       });
 
-      const meetings = await prisma.allocation.count({
+      const meetings = await prisma.meeting.count({
         where: {
           studentId: { in: tuteeIds },
-          startAt: {
+          tutorId: tutorId, // Ensure the meeting involves this tutor
+          start: {
             gte: intervalObj.start,
             lt: end,
           },
+          // status: true, // Only count active meetings
         },
       });
 
@@ -962,12 +733,12 @@ export default {
   getTutorPerformance,
   getTutorProfile,
   getStudentOverviewMetrics,
-  getUpcomingMeetings,
+  getUpcomingMeetingsForStudent,
   getRecentDocuments,
   getStudentActivity,
   getTutorOverviewMetrics,
   getTuteesInformation,
-  // getUpcomingMeetings,
+  getUpcomingMeetingsForTutor,
   getRecentlyUploadedDocuments,
   getTuteesActivity,
   getDocumentFeedbackAnalytics,
