@@ -109,6 +109,15 @@ router.delete(
   '/cancel',
   asyncHandler(async (req: ProtectedRequest, res) => {
     const { meetingId } = req.body;
+    // check role must be tutor
+    const actionTriggerUser = await UserRepo.findByEmail(req.user.email || '');
+    if (
+      !actionTriggerUser?.roles.some((role) => role.code === RoleCode.TUTOR)
+    ) {
+      throw new BadRequestError(
+        'You are not authorized to perform this action',
+      );
+    }
     const meeting = await MeetingRepo.cancelMeeting(meetingId);
     new SuccessResponse('Meeting cancelled', meeting).send(res);
   }),
