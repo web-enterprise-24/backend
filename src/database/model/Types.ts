@@ -15,6 +15,17 @@ export type NotificationTutor = {
       profilePicUrl: string | null;
     } | null;
   } | null;
+  meeting: {
+    id: string;
+    start: Date;
+    end: Date;
+    student: {
+      id: string;
+      name: string | null;
+      email: string;
+      profilePicUrl: string | null;
+    } | null;
+  } | null;
 };
 
 export type NotificationStudent = {
@@ -35,6 +46,17 @@ export type NotificationStudent = {
           profilePicUrl: string | null;
         } | null;
       }[];
+    } | null;
+  } | null;
+  meeting: {
+    id: string;
+    start: Date;
+    end: Date;
+    tutor: {
+      id: string;
+      name: string | null;
+      email: string;
+      profilePicUrl: string | null;
     } | null;
   } | null;
 };
