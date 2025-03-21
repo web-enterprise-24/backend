@@ -1,4 +1,4 @@
-import prisma from "../prismaClient";
+import prisma from '../prismaClient';
 
 /*----Staff----*/
 
@@ -43,7 +43,6 @@ async function getOverviewMetrics() {
     messages: messageCount,
   };
 }
-
 
 // Get tutor activity (meetings and messages) over the last 4 weeks
 async function getTutorActivity() {
@@ -109,7 +108,7 @@ async function getTutorActivity() {
         meetings: meetingCount,
         messages: messageCount,
       };
-    })
+    }),
   );
 
   return activity;
@@ -154,7 +153,7 @@ async function getTutorPerformance() {
         students: studentCount,
         meetings: meetingCount,
       };
-    })
+    }),
   );
 
   return performance;
@@ -209,10 +208,7 @@ async function getStudentOverviewMetrics(studentId: string) {
   // Count total messages sent/received by the student
   const messageCount = await prisma.message.count({
     where: {
-      OR: [
-        { senderId: studentId },
-        { receiverId: studentId },
-      ],
+      OR: [{ senderId: studentId }, { receiverId: studentId }],
     },
   });
 
@@ -239,7 +235,10 @@ async function getStudentOverviewMetrics(studentId: string) {
 }
 
 // Get upcoming meetings for a student
-async function getUpcomingMeetingsForStudent(studentId: string, limit: number = 3) {
+async function getUpcomingMeetingsForStudent(
+  studentId: string,
+  limit: number = 3,
+) {
   const now = new Date();
 
   const meetings = await prisma.meeting.findMany({
@@ -258,10 +257,9 @@ async function getUpcomingMeetingsForStudent(studentId: string, limit: number = 
       id: true,
       start: true,
       end: true,
-      fileUrl: true, // Could be used to determine if it's virtual or in-person
       tutor: {
         select: {
-          name:true
+          name: true,
         },
       },
     },
@@ -269,10 +267,12 @@ async function getUpcomingMeetingsForStudent(studentId: string, limit: number = 
 
   return meetings.map((meeting) => ({
     id: meeting.id,
-    title: `Meeting with tutor ${meeting.tutor.name || ''}`.trim() || 'Tutor Meeting',
+    title:
+      `Meeting with tutor ${meeting.tutor.name || ''}`.trim() ||
+      'Tutor Meeting',
     startAt: meeting.start,
     endAt: meeting.end,
-    location: meeting.fileUrl ? 'Virtual' : 'In-Person', // Assuming fileUrl indicates a virtual meeting link
+    // location: meeting.fileUrl ? 'Virtual' : 'In-Person', // Assuming fileUrl indicates a virtual meeting link
   }));
 }
 
@@ -301,7 +301,10 @@ async function getRecentDocuments(studentId: string, limit: number = 5) {
 }
 
 // Get activity distribution for a student
-async function getStudentActivity(studentId: string, timeRange: 'lastWeek' | 'lastMonth') {
+async function getStudentActivity(
+  studentId: string,
+  timeRange: 'lastWeek' | 'lastMonth',
+) {
   const now = new Date();
   let startDate: Date;
 
@@ -314,10 +317,7 @@ async function getStudentActivity(studentId: string, timeRange: 'lastWeek' | 'la
   // Count messages in the time range
   const messageCount = await prisma.message.count({
     where: {
-      OR: [
-        { senderId: studentId },
-        { receiverId: studentId },
-      ],
+      OR: [{ senderId: studentId }, { receiverId: studentId }],
       createdAt: {
         gte: startDate,
       },
@@ -361,7 +361,7 @@ async function getStudentActivity(studentId: string, timeRange: 'lastWeek' | 'la
 
 // Get overview metrics for a tutor
 async function getTutorOverviewMetrics(tutorId: string) {
-  const now = new Date();
+  // const now = new Date();
 
   // Count total tutees assigned to the tutor
   const tuteeCount = await prisma.allocation.count({
@@ -374,10 +374,7 @@ async function getTutorOverviewMetrics(tutorId: string) {
   // Count total messages sent/received by the tutor
   const messageCount = await prisma.message.count({
     where: {
-      OR: [
-        { senderId: tutorId },
-        { receiverId: tutorId },
-      ],
+      OR: [{ senderId: tutorId }, { receiverId: tutorId }],
     },
   });
 
@@ -416,7 +413,12 @@ async function getTutorOverviewMetrics(tutorId: string) {
 }
 
 // Get tutees information for a tutor with pagination
-async function getTuteesInformation(tutorId: string, page: number, limit: number, baseUrl: string) {
+async function getTuteesInformation(
+  tutorId: string,
+  page: number,
+  limit: number,
+  baseUrl: string,
+) {
   const skip = (page - 1) * limit;
 
   // Fetch tutees with pagination
@@ -456,8 +458,10 @@ async function getTuteesInformation(tutorId: string, page: number, limit: number
 
   // Create pagination links
   const pagination: { [key: string]: string | null } = {
-    nextPage: page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : null,
-    previousPage: page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : null,
+    nextPage:
+      page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : null,
+    previousPage:
+      page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : null,
   };
 
   // Return formatted response
@@ -495,7 +499,6 @@ async function getUpcomingMeetingsForTutor(tutorId: string, limit: number = 3) {
       id: true,
       start: true,
       end: true,
-      fileUrl: true, // Used to determine if the meeting is virtual
       student: {
         select: {
           name: true,
@@ -506,15 +509,18 @@ async function getUpcomingMeetingsForTutor(tutorId: string, limit: number = 3) {
 
   return meetings.map((meeting) => ({
     id: meeting.id,
-    title: `Meeting with ${meeting.student.name || ''}`.trim() || 'Student Meeting',
+    title:
+      `Meeting with ${meeting.student.name || ''}`.trim() || 'Student Meeting',
     startAt: meeting.start,
     endAt: meeting.end,
-    location: meeting.fileUrl ? 'Virtual' : 'In-Person', // Assuming fileUrl indicates a virtual meeting link
   }));
 }
 
 // Get recently uploaded documents by tutees
-async function getRecentlyUploadedDocuments(tutorId: string, limit: number = 3) {
+async function getRecentlyUploadedDocuments(
+  tutorId: string,
+  limit: number = 3,
+) {
   const documents = await prisma.document.findMany({
     where: {
       student: {
@@ -555,7 +561,10 @@ async function getRecentlyUploadedDocuments(tutorId: string, limit: number = 3) 
 }
 
 // Get tutees activity for a tutor
-async function getTuteesActivity(tutorId: string, timeRange: 'lastWeek' | 'lastMonth') {
+async function getTuteesActivity(
+  tutorId: string,
+  timeRange: 'lastWeek' | 'lastMonth',
+) {
   const now = new Date();
   let startDate: Date;
   let interval: 'day' | 'week';
@@ -589,7 +598,13 @@ async function getTuteesActivity(tutorId: string, timeRange: 'lastWeek' | 'lastM
   if (interval === 'day') {
     for (let i = 0; i < 7; i++) {
       const date = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
-      intervals.push({ start: date, label: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) });
+      intervals.push({
+        start: date,
+        label: date.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        }),
+      });
     }
   } else {
     for (let i = 0; i < 4; i++) {
@@ -599,8 +614,12 @@ async function getTuteesActivity(tutorId: string, timeRange: 'lastWeek' | 'lastM
   }
 
   const activity = await Promise.all(
-    intervals.map(async (intervalObj) => { // Renamed to avoid confusion
-      const end = new Date(intervalObj.start.getTime() + (interval === 'day' ? 1 : 7) * 24 * 60 * 60 * 1000);
+    intervals.map(async (intervalObj) => {
+      // Renamed to avoid confusion
+      const end = new Date(
+        intervalObj.start.getTime() +
+          (interval === 'day' ? 1 : 7) * 24 * 60 * 60 * 1000,
+      );
 
       const messages = await prisma.message.count({
         where: {
@@ -643,14 +662,17 @@ async function getTuteesActivity(tutorId: string, timeRange: 'lastWeek' | 'lastM
         meetings,
         documents,
       };
-    })
+    }),
   );
 
   return activity;
 }
 
 // Get document feedback analytics for a tutor
-async function getDocumentFeedbackAnalytics(tutorId: string, timeRange: 'thisWeek' | 'thisMonth') {
+async function getDocumentFeedbackAnalytics(
+  tutorId: string,
+  timeRange: 'thisWeek' | 'thisMonth',
+) {
   const now = new Date();
   let startDate: Date;
 
@@ -686,13 +708,18 @@ async function getDocumentFeedbackAnalytics(tutorId: string, timeRange: 'thisWee
       const day = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
       intervals.push({
         start: day,
-        label: day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        label: day.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        }),
       });
     }
   } else {
     // Divide by week in month (4 weeks)
     for (let i = 0; i < 4; i++) {
-      const weekStart = new Date(startDate.getTime() + i * 7 * 24 * 60 * 60 * 1000);
+      const weekStart = new Date(
+        startDate.getTime() + i * 7 * 24 * 60 * 60 * 1000,
+      );
       intervals.push({
         start: weekStart,
         label: `Week ${i + 1}`,
@@ -704,7 +731,10 @@ async function getDocumentFeedbackAnalytics(tutorId: string, timeRange: 'thisWee
   const analytics = await Promise.all(
     intervals.map(async (interval) => {
       const end = new Date(
-        interval.start.getTime() + (timeRange === 'thisWeek' ? 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000)
+        interval.start.getTime() +
+          (timeRange === 'thisWeek'
+            ? 24 * 60 * 60 * 1000
+            : 7 * 24 * 60 * 60 * 1000),
       ); // 1 day for this Week, 7 days for this Month
 
       // Count the number of documents received during this period
@@ -739,7 +769,7 @@ async function getDocumentFeedbackAnalytics(tutorId: string, timeRange: 'thisWee
         documentsReceived,
         feedbackProvided,
       };
-    })
+    }),
   );
 
   return analytics;
@@ -760,4 +790,4 @@ export default {
   getRecentlyUploadedDocuments,
   getTuteesActivity,
   getDocumentFeedbackAnalytics,
-}
+};

@@ -124,6 +124,7 @@ async function getMySchedule(isTutor: boolean, userId: string) {
           profilePicUrl: true,
         },
       },
+      records: true,
     },
     orderBy: { start: 'desc' },
   });
@@ -133,7 +134,7 @@ async function getMySchedule(isTutor: boolean, userId: string) {
 async function getMeetingHistory(isTutor: boolean, userId: string) {
   const meetings = await prisma.meeting.findMany({
     where: {
-      ...(isTutor ? { tutorIxd: userId } : { studentId: userId }),
+      ...(isTutor ? { tutorId: userId } : { studentId: userId }),
       end: { lte: new Date() },
     },
     include: {
@@ -151,6 +152,7 @@ async function getMeetingHistory(isTutor: boolean, userId: string) {
           profilePicUrl: true,
         },
       },
+      records: true,
     },
   });
   return meetings;
@@ -212,7 +214,7 @@ async function updateFileUrl(meetingId: string, fileUrl: string) {
   try {
     const updated = await prisma.meeting.update({
       where: { id: meetingId, accepted: true },
-      data: { fileUrl },
+      data: { records: { create: { fileUrl } } },
     });
     return updated;
   } catch (error) {
