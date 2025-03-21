@@ -75,8 +75,13 @@ router.post(
   '/',
   validator(schema.createMeeting),
   asyncHandler(async (req: ProtectedRequest, res) => {
-    const { start, end } = req.body;
-    const meeting = await MeetingRepo.createMeeting(req.user.id, start, end);
+    const { start, end, title } = req.body;
+    const meeting = await MeetingRepo.createMeeting(
+      req.user.id,
+      start,
+      end,
+      title,
+    );
     new SuccessResponse('Meeting booked', meeting).send(res);
   }),
 );

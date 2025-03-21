@@ -15,6 +15,7 @@ export default {
   createMeeting: Joi.object().keys({
     start: Joi.date().required(),
     end: Joi.date().required(),
+    title: Joi.string().required(),
   }),
   updateFileUrl: Joi.object().keys({
     meetingId: Joi.string().required(),

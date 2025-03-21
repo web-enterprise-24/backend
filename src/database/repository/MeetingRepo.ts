@@ -37,7 +37,12 @@ import { createNotification } from './NotificationRepo';
 //   return meeting;
 // }
 
-async function createMeeting(studentId: string, start: Date, end: Date) {
+async function createMeeting(
+  studentId: string,
+  start: Date,
+  end: Date,
+  title: string,
+) {
   const findTutor = await AllocateRepo.getMyTutor(studentId);
   if (!findTutor) {
     throw new BadRequestError('Tutor not found');
@@ -70,6 +75,7 @@ async function createMeeting(studentId: string, start: Date, end: Date) {
       tutorId: findTutor.id,
       start,
       end,
+      title,
     },
   });
 
