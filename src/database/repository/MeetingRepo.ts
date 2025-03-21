@@ -133,7 +133,7 @@ async function getMySchedule(isTutor: boolean, userId: string) {
 async function getMeetingHistory(isTutor: boolean, userId: string) {
   const meetings = await prisma.meeting.findMany({
     where: {
-      ...(isTutor ? { tutorId: userId } : { studentId: userId }),
+      ...(isTutor ? { tutorIxd: userId } : { studentId: userId }),
       end: { lte: new Date() },
     },
     include: {
@@ -176,6 +176,7 @@ async function cancelMeeting(id: string) {
   const meeting = await prisma.meeting.delete({
     where: { id, accepted: false },
   });
+  console.log('🚀 ~ cancelMeeting ~ meeting:', meeting);
 
   // Send notification to student
   await createNotification({
@@ -183,7 +184,7 @@ async function cancelMeeting(id: string) {
     title: 'Meeting Canceled',
     message: `Your meeting has been canceled by your tutor.`,
     type: 'meeting_canceled',
-    meetingId: meeting.id,
+    // meetingId: meeting.id,
   });
 
   return meeting;

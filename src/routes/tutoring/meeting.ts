@@ -39,6 +39,10 @@ router.get(
     const { userId } = req.params;
 
     const actionTriggerUser = await UserRepo.findByEmail(req.user.email || '');
+    console.log(
+      '🚀 ~ asyncHandler ~ actionTriggerUser:',
+      actionTriggerUser?.id,
+    );
     if (!actionTriggerUser) {
       throw new BadRequestError('User not found');
     }
@@ -137,6 +141,10 @@ router.delete(
     const { meetingId } = req.body;
     // check role must be tutor
     const actionTriggerUser = await UserRepo.findByEmail(req.user.email || '');
+    console.log(
+      '🚀 ~ asyncHandler ~ actionTriggerUser:',
+      actionTriggerUser?.id,
+    );
     if (
       !actionTriggerUser?.roles.some((role) => role.code === RoleCode.TUTOR)
     ) {
