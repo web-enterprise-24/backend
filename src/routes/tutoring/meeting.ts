@@ -37,7 +37,15 @@ router.get(
   '/',
   asyncHandler(async (req: ProtectedRequest, res) => {
     const { userId } = req.params;
-    const meetings = await MeetingRepo.getMySchedule(userId);
+
+    const actionTriggerUser = await UserRepo.findByEmail(req.user.email || '');
+    if (!actionTriggerUser) {
+      throw new BadRequestError('User not found');
+    }
+    const isTutor = actionTriggerUser?.roles.some(
+      (role) => role.code === RoleCode.TUTOR,
+    );
+    const meetings = await MeetingRepo.getMySchedule(isTutor, userId);
     new SuccessResponse('Meeting schedule', meetings).send(res);
   }),
 );

@@ -77,7 +77,7 @@ async function createMeeting(studentId: string, start: Date, end: Date) {
     where: { id: studentId },
     select: { name: true },
   });
-  
+
   if (!student) {
     throw new BadRequestError('Student not found');
   }
@@ -85,9 +85,9 @@ async function createMeeting(studentId: string, start: Date, end: Date) {
   // Send notification to tutor
   await createNotification({
     userId: findTutor.id,
-    title: "New Meeting Request",
+    title: 'New Meeting Request',
     message: `${student.name} has requested a meeting`,
-    type: "meeting_request",
+    type: 'meeting_request',
     meetingId: meeting.id,
   });
 
@@ -106,9 +106,9 @@ async function getMyTutorSchedule(studentId: string) {
   return meetings;
 }
 
-async function getMySchedule(userId: string) {
+async function getMySchedule(isTutor: boolean, userId: string) {
   const meetings = await prisma.meeting.findMany({
-    where: { studentId: userId },
+    where: { ...(isTutor ? { tutorId: userId } : { studentId: userId }) },
     include: {
       tutor: {
         select: {
@@ -180,9 +180,9 @@ async function cancelMeeting(id: string) {
   // Send notification to student
   await createNotification({
     userId: meeting.studentId,
-    title: "Meeting Canceled",
+    title: 'Meeting Canceled',
     message: `Your meeting has been canceled by your tutor.`,
-    type: "meeting_canceled",
+    type: 'meeting_canceled',
     meetingId: meeting.id,
   });
 
@@ -198,9 +198,9 @@ async function acceptMeeting(id: string, tutorId: string) {
   // Send notification to student
   await createNotification({
     userId: meeting.studentId,
-    title: "Meeting Accepted",
+    title: 'Meeting Accepted',
     message: `Your meeting has been accepted by your tutor.`,
-    type: "meeting_accepted",
+    type: 'meeting_accepted',
     meetingId: meeting.id,
   });
 
