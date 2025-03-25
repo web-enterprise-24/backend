@@ -23,10 +23,11 @@ router.get(
   '/tuteesInformation',
   asyncHandler(async (req: ProtectedRequest, res) => {
     const tutorId = req.user.id;
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.pageSize as string) || 5;
-    const baseUrl = `https://${req.get('host')}${req.baseUrl}/tuteesInformation`;
-    const tuteesInfo = await DashboardRepo.getTuteesInformation(tutorId, page, limit, baseUrl);
+    // const page = parseInt(req.query.page as string) || 1;
+    // const limit = parseInt(req.query.pageSize as string) || 5;
+    // const baseUrl = `https://${req.get('host')}${req.baseUrl}/tuteesInformation`;
+    // const tuteesInfo = await DashboardRepo.getTuteesInformation(tutorId, page, limit, baseUrl);
+    const tuteesInfo = await DashboardRepo.getTuteesInformation(tutorId);
     new SuccessResponse('Success', tuteesInfo).send(res);
   })
 );

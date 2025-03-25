@@ -415,11 +415,11 @@ async function getTutorOverviewMetrics(tutorId: string) {
 // Get tutees information for a tutor with pagination
 async function getTuteesInformation(
   tutorId: string,
-  page: number,
-  limit: number,
-  baseUrl: string,
+  // page: number,
+  // limit: number,
+  // baseUrl: string,
 ) {
-  const skip = (page - 1) * limit;
+  // const skip = (page - 1) * limit;
 
   // Fetch tutees with pagination
   const tutees = await prisma.user.findMany({
@@ -431,8 +431,8 @@ async function getTuteesInformation(
         },
       },
     },
-    skip: skip,
-    take: limit,
+    // skip: skip,
+    // take: limit,
     select: {
       id: true,
       name: true,
@@ -442,34 +442,34 @@ async function getTuteesInformation(
   });
 
   // Count total tutees for pagination
-  const totalTutees = await prisma.user.count({
-    where: {
-      studentAllocations: {
-        some: {
-          tutorId: tutorId,
-          status: true,
-        },
-      },
-    },
-  });
+  // const totalTutees = await prisma.user.count({
+  //   where: {
+  //     studentAllocations: {
+  //       some: {
+  //         tutorId: tutorId,
+  //         status: true,
+  //       },
+  //     },
+  //   },
+  // });
 
   // Calculate total pages
-  const totalPages = Math.ceil(totalTutees / limit);
+  // const totalPages = Math.ceil(totalTutees / limit);
 
   // Create pagination links
-  const pagination: { [key: string]: string | null } = {
-    nextPage:
-      page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : null,
-    previousPage:
-      page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : null,
-  };
+  // const pagination: { [key: string]: string | null } = {
+  //   nextPage:
+  //     page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : null,
+  //   previousPage:
+  //     page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : null,
+  // };
 
   // Return formatted response
   return {
-    totalPages,
-    currentPage: page,
-    totalTutees,
-    pagination,
+    // totalPages,
+    // currentPage: page,
+    // totalTutees,
+    // pagination,
     tutees: tutees.map((tutee) => ({
       id: tutee.id,
       name: tutee.name || 'Unknown',

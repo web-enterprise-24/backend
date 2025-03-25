@@ -43,7 +43,8 @@ router.get(
 
     // Get dashboard data of tutor
     const metrics = await DashboardRepo.getTutorOverviewMetrics(tutorId);
-    const tutees = await DashboardRepo.getTuteesInformation(tutorId, 1, 10, req.baseUrl);
+    // const tutees = await DashboardRepo.getTuteesInformation(tutorId, 1, 10, req.baseUrl);
+    const tutees = await DashboardRepo.getTuteesInformation(tutorId);
     const upcomingMeetings = await DashboardRepo.getUpcomingMeetingsForTutor(tutorId);
     const recentDocuments = await DashboardRepo.getRecentlyUploadedDocuments(tutorId);
     const tuteesActivity = await DashboardRepo.getTuteesActivity(tutorId, 'lastMonth');
