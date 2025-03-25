@@ -255,6 +255,7 @@ async function getUpcomingMeetingsForStudent(
     take: limit,
     select: {
       id: true,
+      title: true,
       start: true,
       end: true,
       tutor: {
@@ -267,9 +268,10 @@ async function getUpcomingMeetingsForStudent(
 
   return meetings.map((meeting) => ({
     id: meeting.id,
-    title:
-      `Meeting with tutor ${meeting.tutor.name || ''}`.trim() ||
-      'Tutor Meeting',
+    // title:
+    //   `Meeting with tutor ${meeting.tutor.name || ''}`.trim() ||
+    //   'Tutor Meeting',
+    title : meeting.title,
     startAt: meeting.start,
     endAt: meeting.end,
     // location: meeting.fileUrl ? 'Virtual' : 'In-Person', // Assuming fileUrl indicates a virtual meeting link
@@ -499,6 +501,7 @@ async function getUpcomingMeetingsForTutor(tutorId: string, limit: number = 3) {
       id: true,
       start: true,
       end: true,
+      title: true,
       student: {
         select: {
           name: true,
@@ -509,8 +512,9 @@ async function getUpcomingMeetingsForTutor(tutorId: string, limit: number = 3) {
 
   return meetings.map((meeting) => ({
     id: meeting.id,
-    title:
-      `Meeting with ${meeting.student.name || ''}`.trim() || 'Student Meeting',
+    // title:
+    //   `Meeting with ${meeting.student.name || ''}`.trim() || 'Student Meeting',
+    title : meeting.title,
     startAt: meeting.start,
     endAt: meeting.end,
   }));
