@@ -38,14 +38,20 @@ import { createNotification } from './NotificationRepo';
 // }
 
 async function createMeeting(
-  studentId: string,
+  userId: string,
   start: Date,
   end: Date,
   title: string,
+  studentId: string,
+  isTutor: boolean,
 ) {
-  const findTutor = await AllocateRepo.getMyTutor(studentId);
-  if (!findTutor) {
-    throw new BadRequestError('Tutor not found');
+  let findTutor;
+  if (!isTutor) {
+    // student
+    findTutor = await AllocateRepo.getMyTutor(userId);
+    if (!findTutor) {
+      throw new BadRequestError('Tutor not found');
+    }
   }
 
   const isFuture = new Date(start) > new Date();
@@ -59,7 +65,7 @@ async function createMeeting(
 
   const isAvailable = await prisma.meeting.findFirst({
     where: {
-      tutorId: findTutor.id,
+      tutorId: isTutor ? userId : findTutor?.id,
       start: { lte: end },
       end: { gte: start },
     },
@@ -72,7 +78,7 @@ async function createMeeting(
   const meeting = await prisma.meeting.create({
     data: {
       studentId,
-      tutorId: findTutor.id,
+      tutorId: isTutor ? userId : findTutor?.id || '',
       start,
       end,
       title,
@@ -90,7 +96,7 @@ async function createMeeting(
 
   // Send notification to tutor
   await createNotification({
-    userId: findTutor.id,
+    userId: isTutor ? userId : findTutor?.id || '',
     title: 'New Meeting Request',
     message: `${student.name} has requested a meeting`,
     type: 'meeting_request',
