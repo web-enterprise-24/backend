@@ -16,6 +16,7 @@ export default {
     start: Joi.date().required(),
     end: Joi.date().required(),
     title: Joi.string().required(),
+    studentId: Joi.string().optional(),
   }),
   updateFileUrl: Joi.object().keys({
     meetingId: Joi.string().required(),

@@ -70,19 +70,29 @@ router.get(
   }),
 );
 
-router.use(role(RoleCode.STUDENT));
 router.post(
   '/',
   validator(schema.createMeeting),
   asyncHandler(async (req: ProtectedRequest, res) => {
-    const { start, end, title } = req.body;
-    const meeting = await MeetingRepo.createMeeting(
-      req.user.id,
-      start,
-      end,
-      title,
+    const { start, end, title, studentId } = req.body;
+    console.log('🚀 ~ asyncHandler ~ studentId:', studentId);
+    const actionTriggerUser = await UserRepo.findByEmail(req.user.email || '');
+    const isTutor = actionTriggerUser?.roles.some(
+      (role) => role.code === RoleCode.TUTOR,
     );
-    new SuccessResponse('Meeting booked', meeting).send(res);
+    if (isTutor && studentId) {
+      const meeting = await MeetingRepo.createMeeting(
+        req.user.id,
+        start,
+        end,
+        title,
+        studentId,
+        isTutor,
+      );
+      new SuccessResponse('Meeting booked', meeting).send(res);
+    } else {
+      throw new BadRequestError('Student ID is required');
+    }
   }),
 );
 
