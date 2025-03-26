@@ -38,6 +38,7 @@ model User {
   notifications          Notification[] @relation(name: "UserNotifications")
   meetings               Meeting[]      @relation(name: "StudentMeetings")
   tutorMeetings          Meeting[]      @relation(name: "TutorMeetings")
+  activityLogs           UserActivity[] 
 }
 
 model Blog {
@@ -210,4 +211,14 @@ model Record {
   fileUrl   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model UserActivity {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activityType String
+  pageUrl      String?
+  browser      String?
+  timestamp    DateTime @default(now())
 }

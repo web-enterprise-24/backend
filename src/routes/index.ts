@@ -26,6 +26,8 @@ import admin from './dashboard/admin';
 import student from './dashboard/student';
 import tutor from './dashboard/tutor';
 import meeting from './tutoring/meeting';
+import authentication from '../auth/authentication';
+import activityLogger from '../helpers/activityLogger';
 
 const router = express.Router();
 
@@ -37,8 +39,15 @@ router.use(permission(Permission.GENERAL));
 /*---------------------------------------------------------*/
 router.use('/signup', signup);
 router.use('/login', login);
-router.use('/logout', logout);
 router.use('/token', token);
+router.use('/blogs', blogs);
+/*---------------------------------------------------------*/
+// Apply authentication and activityLogger to routes that require login
+router.use(authentication);
+router.use(activityLogger);
+/*---------------------------------------------------------*/
+
+router.use('/logout', logout);
 router.use('/credential', credential);
 router.use('/profile', profile);
 router.use('/roles', roles);
@@ -47,7 +56,6 @@ router.use('/allocate', allocate);
 router.use('/upload', upload);
 router.use('/chat', chat);
 router.use('/blog', blog);
-router.use('/blogs', blogs);
 router.use('/notification', notification);
 router.use('/feedback', feedback);
 router.use('/comment', comment);
