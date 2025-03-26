@@ -159,6 +159,76 @@ async function getTutorPerformance() {
   return performance;
 }
 
+async function getMostActiveUsersByRole() {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const roles = ['STAFF', 'TUTOR', 'STUDENT'];
+  const result = await Promise.all(roles.map(async (role) => {
+    const users = await prisma.user.findMany({
+      where: {
+        roles: {
+          some: {
+            code: role,
+          },
+        },
+      },
+      include: {
+        activityLogs: {
+          where: {
+            activityType: 'LOGIN',
+            timestamp: {
+              gte: thirtyDaysAgo,
+            },
+          },
+        },
+      },
+    });
+
+    const topUser = users.sort((a, b) => b.activityLogs.length - a.activityLogs.length)[0];
+    return {
+      role,
+      user: topUser ? { id: topUser.id, name: topUser.name || 'Unknown', loginCount: topUser.activityLogs.length } : null,
+    };
+  }));
+  return result;
+}
+
+async function getMostAccessedPages(limit = 5) {
+  const pages = await prisma.userActivity.groupBy({
+    by: ['pageUrl'],
+    where: {
+      activityType: 'PAGE_VISIT',
+    },
+    _count: {
+      id: true,
+    },
+    orderBy: {
+      _count: {
+        id: 'desc',
+      },
+    },
+    take: limit,
+  });
+  return pages.map(p => ({ pageUrl: p.pageUrl, visitCount: p._count.id }));
+}
+
+async function getMostUsedBrowsers(limit = 5) {
+  const browsers = await prisma.userActivity.groupBy({
+    by: ['browser'],
+    _count: {
+      id: true,
+    },
+    orderBy: {
+      _count: {
+        id: 'desc',
+      },
+    },
+    take: limit,
+  });
+  return browsers.map(b => ({ browser: b.browser || 'Unknown', usageCount: b._count.id }));
+}
+
 /*----Student----*/
 
 // Get tutor profile information for a student
@@ -784,6 +854,9 @@ export default {
   getTutorActivity,
   getTutorPerformance,
   getTutorProfile,
+  getMostActiveUsersByRole,
+  getMostAccessedPages,
+  getMostUsedBrowsers,
   getStudentOverviewMetrics,
   getUpcomingMeetingsForStudent,
   getRecentDocuments,

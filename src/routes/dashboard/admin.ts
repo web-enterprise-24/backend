@@ -83,4 +83,38 @@ router.get(
   })
 );
 
+router.get(
+  '/userActivityStats',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const mostActiveUsers = await DashboardRepo.getMostActiveUsersByRole();
+    const mostAccessedPages = await DashboardRepo.getMostAccessedPages();
+    const mostUsedBrowsers = await DashboardRepo.getMostUsedBrowsers();
+    new SuccessResponse('Success', { mostActiveUsers, mostAccessedPages, mostUsedBrowsers }).send(res);
+  })
+);
+
+router.get(
+  '/getActiveUsers',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const activeUsers = await DashboardRepo.getMostActiveUsersByRole();
+    new SuccessResponse('Success', { activeUsers }).send(res);
+  })
+);
+
+router.get(
+  '/getAccessedPages',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const accessedPages = await DashboardRepo.getMostAccessedPages();
+    new SuccessResponse('Success', { accessedPages }).send(res);
+  })
+);
+
+router.get(
+  '/getUsedBrowsers',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const usedBrowsers = await DashboardRepo.getMostUsedBrowsers();
+    new SuccessResponse('Success', { usedBrowsers }).send(res);
+  })
+);
+
 export default router;
