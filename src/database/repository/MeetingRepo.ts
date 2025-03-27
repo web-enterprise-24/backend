@@ -48,6 +48,7 @@ async function createMeeting(
   let findTutor;
   if (!isTutor) {
     // student
+    studentId = userId;
     findTutor = await AllocateRepo.getMyTutor(userId);
     if (!findTutor) {
       throw new BadRequestError('Tutor not found');
@@ -75,14 +76,16 @@ async function createMeeting(
     throw new BadRequestError('Time is not available');
   }
 
+  const dataToCreate = {
+    studentId,
+    tutorId: isTutor ? userId : findTutor?.id || '',
+    start,
+    end,
+    title,
+  };
+  console.log('🚀 ~ dataToCreate:', dataToCreate);
   const meeting = await prisma.meeting.create({
-    data: {
-      studentId,
-      tutorId: isTutor ? userId : findTutor?.id || '',
-      start,
-      end,
-      title,
-    },
+    data: dataToCreate,
   });
 
   const student = await prisma.user.findUnique({

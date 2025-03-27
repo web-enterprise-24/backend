@@ -80,6 +80,7 @@ router.post(
     const isTutor = actionTriggerUser?.roles.some(
       (role) => role.code === RoleCode.TUTOR,
     );
+
     if (isTutor && studentId) {
       const meeting = await MeetingRepo.createMeeting(
         req.user.id,
@@ -91,7 +92,15 @@ router.post(
       );
       new SuccessResponse('Meeting booked', meeting).send(res);
     } else {
-      throw new BadRequestError('Student ID is required');
+      const meeting = await MeetingRepo.createMeeting(
+        req.user.id,
+        start,
+        end,
+        title,
+        studentId,
+        isTutor || false,
+      );
+      new SuccessResponse('Meeting booked', meeting).send(res);
     }
   }),
 );
