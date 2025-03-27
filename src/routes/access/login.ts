@@ -13,6 +13,7 @@ import { getUserData } from './utils';
 import { PublicRequest } from '../../types/app-request';
 import prisma from '../../database/prismaClient';
 import { UAParser } from 'ua-parser-js';
+import { format, toZonedTime } from 'date-fns-tz';
 
 const router = express.Router();
 
@@ -61,6 +62,28 @@ router.post(
     const tokens = await createTokens(user, accessTokenKey, refreshTokenKey);
     const userData = await getUserData(user);
 
+    // Check last login
+    const lastLogin = await prisma.userActivity.findFirst({
+      where: {
+        userId: user.id,
+        activityType: 'LOGIN',
+      },
+      orderBy: {
+        timestamp: 'desc',
+      },
+    });
+    
+    let lastLoginMessage: string;
+    if (!lastLogin) {
+      // First login
+      lastLoginMessage = 'Welcome to the system! This is your first login.';
+    } else {
+      // Next login
+      const zonedTime = toZonedTime(lastLogin.timestamp, 'Asia/Ho_Chi_Minh');
+      const lastLoginTime = format(zonedTime, "yyyy-MM-dd 'at' HH:mm:ss");
+      lastLoginMessage = `Your last login was on ${lastLoginTime}.`;
+    }
+
     // Log login events
     const parser = new UAParser(req.headers['user-agent']);
     const browser = parser.getBrowser().name || 'Unknown';
@@ -76,6 +99,7 @@ router.post(
     new SuccessResponse('Login Success', {
       user: userData,
       tokens: tokens,
+      lastLoginMessage,
     }).send(res);
   }),
 );
