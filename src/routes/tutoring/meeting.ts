@@ -81,7 +81,10 @@ router.post(
       (role) => role.code === RoleCode.TUTOR,
     );
 
-    if (isTutor && studentId) {
+    if (isTutor) {
+      if (!studentId) {
+        throw new BadRequestError('Student ID is required');
+      }
       const meeting = await MeetingRepo.createMeeting(
         req.user.id,
         start,
