@@ -15,6 +15,8 @@ import { RoleCode } from '../../database/model/Role';
 import { User } from '@prisma/client';
 import RoleRepo from '../../database/repository/RoleRepo';
 import AllocateRepo from '../../database/repository/AllocateRepo';
+import prisma from '../../database/prismaClient';
+import { format, toZonedTime } from 'date-fns-tz';
 
 const router = express.Router();
 
@@ -49,9 +51,33 @@ router.get(
       'roles',
       'requiredPasswordChange',
     ]);
+
+    // Check last login
+    const lastLogin = await prisma.userActivity.findFirst({
+      where: {
+        userId: user.id,
+        activityType: 'LOGIN',
+      },
+      orderBy: {
+        timestamp: 'desc',
+      },
+    });
+    
+    let lastLoginMessage: string;
+    if (!lastLogin) {
+      // First login
+      lastLoginMessage = 'Welcome to the system! This is your first login.';
+    } else {
+      // Next login
+      const zonedTime = toZonedTime(lastLogin.timestamp, 'Asia/Ho_Chi_Minh');
+      const lastLoginTime = format(zonedTime, "yyyy-MM-dd 'at' HH:mm:ss");
+      lastLoginMessage = `Your last login was on ${lastLoginTime}.`;
+    }
+    
     return new SuccessResponse('success', {
       ...userData,
       myTutor,
+      lastLoginMessage,
     }).send(res);
   }),
 );
