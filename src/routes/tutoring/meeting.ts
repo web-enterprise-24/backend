@@ -36,7 +36,7 @@ router.use(authorization);
 router.get(
   '/',
   asyncHandler(async (req: ProtectedRequest, res) => {
-    const { userId } = req.params;
+    const userId = req.user.id;
 
     const actionTriggerUser = await UserRepo.findByEmail(req.user.email || '');
     console.log(

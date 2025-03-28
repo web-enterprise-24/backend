@@ -122,6 +122,9 @@ async function getMyTutorSchedule(studentId: string) {
 }
 
 async function getMySchedule(isTutor: boolean, userId: string) {
+  console.log('🚀 ~ getMySchedule ~ userId:', userId);
+  console.log('🚀 ~ getMySchedule ~ isTutor:', isTutor);
+  console.log('query', isTutor ? { tutorId: userId } : { studentId: userId });
   const meetings = await prisma.meeting.findMany({
     where: { ...(isTutor ? { tutorId: userId } : { studentId: userId }) },
     include: {
