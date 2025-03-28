@@ -219,6 +219,7 @@ const apiToPageMapping: { [key: string]: string } ={
   '/profile': 'Profile Page',
   '/profile/create': 'Management Page',
   '/allocate': 'Management Page',
+  '/account': 'Management Page',
   '/upload': 'Document Page',
   '/upload/myDocuments': 'Document Page',
   '/upload/myStudentsDocuments': 'Document Page',
@@ -234,18 +235,12 @@ const apiToPageMapping: { [key: string]: string } ={
   '/blog/editor/unpublish': 'Blog Page',
   '/comment': 'Blog Page',
   '/notification': 'Notification Page',
-  '/accounts/': 'Accounts Page',
-  '/allocate/': 'Allocations Page',
-  '/upload/': 'Upload Page',
-  'chat/': 'Chat Page',
-  '/blog/': 'Blog Page',
-  '/notification/': 'Notification Page',
   '/notification/read': 'Notification Page',
   '/admin/overviewMetrics': 'Staff Dashboard Page',
   '/admin/tutorActivity': 'Staff Dashboard Page',
   '/admin/tutorPerformance': 'Staff Dashboard Page',
-  '/admin/viewTutorDashboard/': 'Staff Dashboard Page',
-  '/admin/viewStudentDashboard/': 'Staff Dashboard Page',
+  '/admin/viewTutorDashboard': 'Staff Dashboard Page',
+  '/admin/viewStudentDashboard': 'Staff Dashboard Page',
   '/admin/userActivityStats': 'Staff Dashboard Page',
   '/admin/getActiveUsers': 'Staff Dashboard Page',
   '/admin/getAccessedPages': 'Staff Dashboard Page',
@@ -270,13 +265,13 @@ const apiToPageMapping: { [key: string]: string } ={
   '/meeting/record': 'Meeting Page',
 };
 
-// API mapping function to page
 function mapApiToPage(apiUrl: string): string {
-  // Find the key in the mapping that matches the apiUrl
+  // Bỏ query parameters, chỉ lấy base path
+  const baseUrl = apiUrl.split('?')[0].replace(/\/$/, ''); // Bỏ / ở cuối
   const matchedKey = Object.keys(apiToPageMapping).find((key) =>
-    apiUrl.startsWith(key)
+    baseUrl.startsWith(key)
   );
-  return matchedKey ? apiToPageMapping[matchedKey] : apiUrl; // If not match, keep apiUrl as is
+  return matchedKey ? apiToPageMapping[matchedKey] : apiUrl;
 }
 
 async function getMostAccessedPages(limit = 5) {
