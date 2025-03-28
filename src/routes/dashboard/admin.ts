@@ -84,6 +84,14 @@ router.get(
 );
 
 router.get(
+  '/userLoginStats',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const userStats = await DashboardRepo.getUserLoginStats();
+    new SuccessResponse('Success', { userStats }).send(res);
+  })
+);
+
+router.get(
   '/userActivityStats',
   asyncHandler(async (req: ProtectedRequest, res) => {
     const mostActiveUsers = await DashboardRepo.getMostActiveUsersByRole();

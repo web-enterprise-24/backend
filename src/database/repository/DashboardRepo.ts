@@ -1,3 +1,4 @@
+import { format, toZonedTime } from 'date-fns-tz';
 import prisma from '../prismaClient';
 
 /*----Staff----*/
@@ -227,6 +228,48 @@ async function getMostUsedBrowsers(limit = 5) {
     take: limit,
   });
   return browsers.map(b => ({ browser: b.browser || 'Unknown', usageCount: b._count.id }));
+}
+
+async function getUserLoginStats() {
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      activityLogs: {
+        where: {
+          activityType: 'LOGIN',
+        },
+        select: {
+          timestamp: true,
+        },
+        orderBy: {
+          timestamp: 'desc', // Sort by time descending to get the most recent login
+        },
+      },
+    },
+  });
+
+  const userStats = users.map((user) => {
+    const lastLogin = user.activityLogs.length > 0 ? user.activityLogs[0].timestamp : null;
+    let lastLoginTime = null;
+
+    if (lastLogin) {
+      const zoneTime = toZonedTime(lastLogin, 'Asia/Ho_Chi_Minh');
+      lastLoginTime = format(zoneTime, "yyyy-MM-dd 'at' HH:mm:ss", {
+        timeZone: 'Asia/Ho_Chi_Minh',
+      });
+    }
+
+    return {
+      id: user.id,
+      name: user.name || 'Unknown',
+      email: user.email,
+      lastLogin: lastLoginTime,
+    };
+  });
+
+  return userStats;
 }
 
 /*----Student----*/
@@ -857,6 +900,7 @@ export default {
   getMostActiveUsersByRole,
   getMostAccessedPages,
   getMostUsedBrowsers,
+  getUserLoginStats,
   getStudentOverviewMetrics,
   getUpcomingMeetingsForStudent,
   getRecentDocuments,
