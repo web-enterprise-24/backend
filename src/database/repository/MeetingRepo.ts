@@ -240,7 +240,34 @@ async function updateFileUrl(meetingId: string, fileUrl: string) {
     throw new BadRequestError('Meeting not found');
   }
 }
+
+async function deleteMeeting(id: string) {
+  const meeting = await prisma.meeting.delete({ where: { id } });
+  return meeting;
+}
+
+async function findById(id: string) {
+  const meeting = await prisma.meeting.findUnique({ where: { id } });
+  return meeting;
+}
+
+async function findRecordById(id: string) {
+  const record = await prisma.record.findUnique({
+    where: { id },
+    include: { meeting: { include: { tutor: true, student: true } } },
+  });
+  return record;
+}
+
+async function deleteRecord(id: string) {
+  const record = await prisma.record.delete({ where: { id } });
+  return record;
+}
+
 export default {
+  findById,
+  findRecordById,
+  deleteRecord,
   createMeeting,
   getMyTutorSchedule,
   getMySchedule,
@@ -248,4 +275,5 @@ export default {
   cancelMeeting,
   acceptMeeting,
   updateFileUrl,
+  deleteMeeting,
 };

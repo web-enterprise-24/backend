@@ -125,7 +125,31 @@ router.post(
     new SuccessResponse('Meeting record updated', meeting).send(res);
   }),
 );
-
+// delete record
+router.delete(
+  '/record/:id',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const actionTriggerUser = await UserRepo.findByEmail(req.user.email || '');
+    if (
+      !actionTriggerUser?.roles.some((role) => role.code === RoleCode.TUTOR)
+    ) {
+      throw new BadRequestError(
+        'You are not authorized to perform this action',
+      );
+    }
+    const record = await MeetingRepo.findRecordById(req.params.id);
+    if (!record) {
+      throw new BadRequestError('Meeting record not found');
+    }
+    if (record?.meeting?.tutorId !== actionTriggerUser.id) {
+      throw new BadRequestError(
+        'You are not authorized to perform this action',
+      );
+    }
+    const deletedRecord = await MeetingRepo.deleteRecord(req.params.id);
+    new SuccessResponse('Meeting record deleted', deletedRecord).send(res);
+  }),
+);
 router.post(
   '/accept',
   validator(schema.acceptMeeting),
@@ -184,6 +208,32 @@ router.delete(
   }),
 );
 
+router.delete(
+  '/:id',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    // check role must be tutor
+    const actionTriggerUser = await UserRepo.findByEmail(req.user.email || '');
+    if (
+      !actionTriggerUser?.roles.some((role) => role.code === RoleCode.TUTOR)
+    ) {
+      throw new BadRequestError(
+        'You are not authorized to perform this action',
+      );
+    }
+    // check meeting is belog to this tutor
+    const meeting = await MeetingRepo.findById(req.params.id);
+    if (!meeting) {
+      throw new BadRequestError('Meeting not found');
+    }
+    if (meeting?.tutorId !== actionTriggerUser.id) {
+      throw new BadRequestError(
+        'You are not authorized to perform this action',
+      );
+    }
+    const deletedMeeting = await MeetingRepo.deleteMeeting(req.params.id);
+    new SuccessResponse('Meeting deleted', deletedMeeting).send(res);
+  }),
+);
 // router.get(
 //   '/details',
 //   asyncHandler(async (req: ProtectedRequest, res) => {

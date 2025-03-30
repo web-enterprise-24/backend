@@ -7,6 +7,7 @@ import DocumentRepo, {
   uploadFile,
 } from '../../database/repository/DocumentRepo';
 import { SuccessResponse } from '../../core/ApiResponse';
+import { BadRequestError } from '../../core/ApiError';
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
@@ -95,6 +96,13 @@ router.get(
 router.delete(
   '/document/:id',
   asyncHandler(async (req: ProtectedRequest, res) => {
+    // check uploader is my
+    const document = await DocumentRepo.findById(req.params.id);
+    if (document?.studentId !== req.user.id) {
+      throw new BadRequestError(
+        'You are not authorized to delete this document',
+      );
+    }
     const deletedDocument = await DocumentRepo.deleteDocument(req.params.id);
     new SuccessResponse('Document deleted successfully', deletedDocument).send(
       res,
