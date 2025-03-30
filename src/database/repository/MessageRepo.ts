@@ -93,11 +93,32 @@ async function getUserChats(userId: string, roleCode: string) {
     }
   }
 
-  return listChats;
+  // Query additional roles for users in listChats
+  const usersWithRoles = await Promise.all(
+    listChats.map(async (user) => {
+      const roles = await prisma.role.findMany({
+        where: { users: { some: { id: user.id } } },
+      });
+      return { ...user, roles }; // Attach roles to user
+    }),
+  );
+
+  return usersWithRoles;
+}
+
+async function getUnreadMessages(userId: string): Promise<boolean> {
+  const unreadMessage = await prisma.message.findFirst({
+    where: {
+      receiverId: userId,
+      isRead: false,
+    },
+  });
+  return unreadMessage !== null;
 }
 
 export default {
   getMessages,
   create,
   getUserChats,
+  getUnreadMessages,
 };

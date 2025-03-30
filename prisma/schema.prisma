@@ -36,6 +36,9 @@ model User {
   likes                  Like[]
   comments               Comment[]      @relation(name: "UserComments")
   notifications          Notification[] @relation(name: "UserNotifications")
+  meetings               Meeting[]      @relation(name: "StudentMeetings")
+  tutorMeetings          Meeting[]      @relation(name: "TutorMeetings")
+  activityLogs           UserActivity[] 
 }
 
 model Blog {
@@ -57,8 +60,9 @@ model Blog {
   publishedAt     DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-  author          User      @relation("UserBlogs", fields: [authorId], references: [id])
+  author          User      @relation("UserBlogs", fields: [authorId], references: [id], onDelete: Cascade)
   comments        Comment[] @relation(name: "BlogComments")
+  notifications Notification[] @relation(name: "BlogNotifications")
 }
 
 model Keystore {
@@ -69,7 +73,7 @@ model Keystore {
   status       Boolean  @default(true)
   createdAt    DateTime
   updatedAt    DateTime
-  client       User     @relation(fields: [clientId], references: [id])
+  client       User     @relation(fields: [clientId], references: [id], onDelete: Cascade)
 }
 
 model Role {
@@ -98,8 +102,8 @@ model Allocation {
   tutorId   String?
   status    Boolean  @default(true)
   startAt   DateTime
-  student   User     @relation(name: "StudentAllocations", fields: [studentId], references: [id])
-  tutor     User?    @relation(name: "TutorAllocations", fields: [tutorId], references: [id])
+  student   User     @relation(name: "StudentAllocations", fields: [studentId], references: [id], onDelete: Cascade)
+  tutor     User?    @relation(name: "TutorAllocations", fields: [tutorId], references: [id], onDelete: Cascade)
 }
 
 model AllocationHistory {
@@ -118,14 +122,15 @@ model Message {
   content    String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  sender     User     @relation(name: "Sender", fields: [senderId], references: [id])
-  receiver   User     @relation(name: "Receiver", fields: [receiverId], references: [id])
+  sender     User     @relation(name: "Sender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User     @relation(name: "Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  isRead     Boolean @default(false)
 }
 
 model Document {
   id            String         @id @default(cuid())
   studentId     String
-  student       User           @relation(name: "Documents", fields: [studentId], references: [id])
+  student       User           @relation(name: "Documents", fields: [studentId], references: [id], onDelete: Cascade)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   fileName      String
@@ -172,8 +177,48 @@ model Notification {
   isRead     Boolean   @default(false)
   type       String?
   documentId String?
-  document   Document? @relation(name: "DocumentNotifications", fields: [documentId], references: [id], onDelete: SetNull)
+  document   Document? @relation(name: "DocumentNotifications", fields: [documentId], references: [id], onDelete: Cascade)
+  blogId     String?
+  blog       Blog?     @relation(name: "BlogNotifications", fields: [blogId], references: [id], onDelete: Cascade)
+  meetingId  String?   
+  meeting    Meeting?  @relation(name: "MeetingNotifications", fields: [meetingId], references: [id], onDelete: Cascade)
   user       User      @relation(name: "UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+}
+
+model Meeting {
+  id        String   @id @default(cuid())
+  studentId String
+  tutorId   String
+  start   DateTime
+  end     DateTime
+  status    Boolean  @default(true)
+  title     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  student   User     @relation(name: "StudentMeetings", fields: [studentId], references: [id], onDelete: Cascade)
+  tutor     User     @relation(name: "TutorMeetings", fields: [tutorId], references: [id], onDelete: Cascade)
+  accepted  Boolean  @default(false)
+  notifications Notification[] @relation("MeetingNotifications")
+  records     Record[] @relation("MeetingRecords")
+} 
+
+model Record {
+  id        String   @id @default(cuid())
+  meetingId String
+  meeting   Meeting  @relation(name: "MeetingRecords", fields: [meetingId], references: [id], onDelete: Cascade)
+  fileUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserActivity {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activityType String
+  pageUrl      String?
+  browser      String?
+  timestamp    DateTime @default(now())
 }

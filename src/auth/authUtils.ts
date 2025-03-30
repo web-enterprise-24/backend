@@ -27,7 +27,6 @@ export const validateTokenData = (payload: JwtPayload): boolean => {
     console.log('🚀 ~ validateTokenData ~ payload is not valid:', payload);
     throw new AuthFailureError('Invalid Access Token = hihi');
   }
-  console.log('🚀 ~ validateTokenData ~ payload is valid:', payload);
   return true;
 };
 

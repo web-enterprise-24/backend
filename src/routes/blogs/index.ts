@@ -32,42 +32,77 @@ router.get(
   }),
 );
 
+// router.get(
+//   '/latest',
+//   validator(schema.pagination, ValidationSource.QUERY),
+//   asyncHandler(async (req, res) => {
+//     const blogs = await BlogRepo.findLatestBlogs(
+//       parseInt(req.query.pageNumber as string),
+//       parseInt(req.query.pageItemCount as string),
+//     );
+//     const baseUrl = `https://${req.get('host')}${req.baseUrl}${req.path}`;
+//     const paginationData = {
+//       result: blogs.length,
+//       total: await BlogRepo.countPublishedBlogs(),
+//       page: parseInt(req.query.pageNumber as string),
+//       limit: parseInt(req.query.pageItemCount as string),
+//       totalPages: Math.ceil(
+//         (await BlogRepo.countPublishedBlogs()) /
+//           parseInt(req.query.pageItemCount as string),
+//       ),
+//       pagination: {
+//         next: `${baseUrl}?pageNumber=${
+//           parseInt(req.query.pageNumber as string) + 1
+//         }&pageItemCount=${parseInt(req.query.pageItemCount as string)}`,
+//         previous: `${baseUrl}?pageNumber=${
+//           parseInt(req.query.pageNumber as string) - 1
+//         }&pageItemCount=${parseInt(req.query.pageItemCount as string)}`,
+//       },
+//     };
+//     return new SuccessResponse('success', { blogs, paginationData }).send(res);
+//   }),
+// );
+
 router.get(
   '/latest',
   validator(schema.pagination, ValidationSource.QUERY),
   asyncHandler(async (req, res) => {
-    const blogs = await BlogRepo.findLatestBlogs(
-      parseInt(req.query.pageNumber as string),
-      parseInt(req.query.pageItemCount as string),
-    );
+    const page = parseInt(req.query.pageNumber as string) || 1;
+    const limit = parseInt(req.query.pageItemCount as string) || 10;
+
+    const blogs = await BlogRepo.findLatestBlogs(page, limit);
+    const totalBlogs = await BlogRepo.countPublishedBlogs();
+    const totalPages = Math.ceil(totalBlogs / limit);
+
     const baseUrl = `https://${req.get('host')}${req.baseUrl}${req.path}`;
+
     const paginationData = {
       result: blogs.length,
-      total: await BlogRepo.countPublishedBlogs(),
-      page: parseInt(req.query.pageNumber as string),
-      limit: parseInt(req.query.pageItemCount as string),
-      totalPages: Math.ceil(
-        (await BlogRepo.countPublishedBlogs()) /
-          parseInt(req.query.pageItemCount as string),
-      ),
+      total: totalBlogs,
+      page,
+      limit,
+      totalPages,
       pagination: {
-        next: `${baseUrl}?page=${
-          parseInt(req.query.pageNumber as string) + 1
-        }&limit=${parseInt(req.query.pageItemCount as string)}`,
-        previous: `${baseUrl}?page=${
-          parseInt(req.query.pageNumber as string) - 1
-        }&limit=${parseInt(req.query.pageItemCount as string)}`,
+        next: page < totalPages 
+          ? `${baseUrl}?pageNumber=${page + 1}&pageItemCount=${limit}` 
+          : null,
+        previous: page > 1 
+          ? `${baseUrl}?pageNumber=${page - 1}&pageItemCount=${limit}` 
+          : null,
       },
     };
+
     return new SuccessResponse('success', { blogs, paginationData }).send(res);
   }),
 );
+
 
 router.get(
   '/:id',
   validator(schema.blogId, ValidationSource.PARAM),
   asyncHandler(async (req, res) => {
     const blog = await BlogRepo.findBlogAllDataById(req.params.id);
+    console.log('🚀 ~ asyncHandler ~ blog:', blog);
     return new SuccessResponse('success', blog).send(res);
   }),
 );

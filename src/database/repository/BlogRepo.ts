@@ -9,6 +9,11 @@ import { createNotification } from './NotificationRepo';
 //   const createdBlog = await BlogModel.create(blog);
 //   return createdBlog.toObject();
 // }
+
+// async function create(blog: Blog): Promise<Blog> {
+//   console.log('🚀 ~ create ~ blog:', blog);
+//   return prisma.blog.create({ data: blog });
+// }
 async function create(blog: Blog): Promise<Blog> {
   console.log('🚀 ~ create ~ blog:', blog);
 
@@ -124,7 +129,7 @@ async function findByTagAndPaginated(
     take: limit,
     include: {
       author: {
-        select: { name: true, profilePicUrl: true },
+        select: { name: true, profilePicUrl: true, roles: true },
       },
     },
   });
@@ -135,7 +140,7 @@ async function findAllPublishedForAuthor(userId: string): Promise<Blog[]> {
     where: { authorId: userId, status: true, isPublished: true },
     include: {
       author: {
-        select: { name: true, profilePicUrl: true },
+        select: { name: true, profilePicUrl: true, roles: true },
       },
     },
     orderBy: { updatedAt: 'desc' },
@@ -231,7 +236,7 @@ async function searchSimilarBlogs(blog: Blog, limit: number): Promise<Blog[]> {
     orderBy: { updatedAt: 'desc' },
     take: limit,
     include: {
-      author: { select: { name: true, profilePicUrl: true } },
+      author: { select: { name: true, profilePicUrl: true, roles: true } },
     },
   });
 }

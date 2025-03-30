@@ -114,14 +114,19 @@ export const uploadFile = async (file: Express.Multer.File, userId: string) => {
         const allocation = await prisma.allocation.findUnique({
           where: { studentId: userId },
         });
-        console.log("Allocation data:", allocation);
+        console.log('Allocation data:', allocation);
 
         if (allocation && allocation.tutorId) {
           console.log(`Tutor ID found: ${allocation.tutorId}`);
           // Get student information to display name in notification
           const student = await prisma.user.findUnique({
             where: { id: userId },
-            select: { name: true, firstName: true, lastName: true, email: true }
+            select: {
+              name: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
           });
 
           const studentName = student?.name || student?.email;
@@ -169,11 +174,32 @@ async function getMyDocuments(
     orderBy: { createdAt: 'desc' },
     skip: (page - 1) * limit,
     take: limit,
+    include: {
+      comments: {
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          message: true,
+          createdAt: true,
+          parentId: true,
+          _count: {
+            select: {
+              likes: true,
+            },
+          },
+          user: {
+            select: { id: true, name: true, email: true, profilePicUrl: true },
+          },
+        },
+      },
+    },
   });
 
   // Create next & previous page links
   const nextPage =
-    page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : undefined;
+    page < totalPages
+      ? `${baseUrl}?page=${page + 1}&limit=${limit}`
+      : undefined;
   const previousPage =
     page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : undefined;
 
@@ -235,8 +261,8 @@ async function getMyStudentsDocuments(
         studentAllocations: { some: { tutorId } },
       },
     },
-    orderBy: { 
-      createdAt: sortOrder
+    orderBy: {
+      createdAt: sortOrder,
     },
     skip: (page - 1) * limit,
     take: limit,
@@ -244,14 +270,35 @@ async function getMyStudentsDocuments(
       student: {
         select: { email: true, name: true, profilePicUrl: true, status: true },
       },
+      comments: {
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          message: true,
+          createdAt: true,
+          parentId: true,
+          _count: {
+            select: {
+              likes: true,
+            },
+          },
+          user: {
+            select: { id: true, name: true, email: true, profilePicUrl: true },
+          },
+        },
+      },
     },
   });
 
   // Create next & previous page links
   const nextPage =
-    page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}&sort=${sortOrder}` : undefined;
+    page < totalPages
+      ? `${baseUrl}?page=${page + 1}&limit=${limit}&sort=${sortOrder}`
+      : undefined;
   const previousPage =
-    page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}&sort=${sortOrder}` : undefined;
+    page > 1
+      ? `${baseUrl}?page=${page - 1}&limit=${limit}&sort=${sortOrder}`
+      : undefined;
 
   return {
     result: documents.length,

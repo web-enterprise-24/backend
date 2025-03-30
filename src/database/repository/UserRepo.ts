@@ -66,6 +66,7 @@ async function findPrivateProfileById(id: string) {
 async function findById(id: string) {
   return prisma.user.findUnique({
     where: { id },
+    include: { roles: true },
   });
 }
 
@@ -135,6 +136,7 @@ async function findFieldsById(id: string, ...fields: string[]) {
 async function findPublicProfileById(id: string) {
   return prisma.user.findUnique({
     where: { id },
+    include: { roles: true },
   });
 }
 
@@ -325,6 +327,16 @@ async function findByRole(
           code: roleCode,
         },
       },
+      ...(filter === AllocateStatus.ALLOCATED && {
+        studentAllocations: {
+          some: {},
+        },
+      }),
+      ...(filter === AllocateStatus.UNALLOCATED && {
+        studentAllocations: {
+          none: {},
+        },
+      }),
       ...(status !== undefined && { status }),
       ...(search && {
         OR: [
@@ -374,8 +386,8 @@ async function findByRole(
     skip,
     take: limit,
   });
+
   if (filter === AllocateStatus.ALLOCATED) {
-    console.log('🚀 ~ filter:', filter);
     result = result.filter((user) => {
       return user.studentAllocations.length > 0;
     });
@@ -422,8 +434,6 @@ async function countByRole(
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
           { email: { contains: search, mode: 'insensitive' } },
-          // { firstName: { contains: search, mode: 'insensitive' } },
-          // { lastName: { contains: search, mode: 'insensitive' } }
         ],
       }),
     },
