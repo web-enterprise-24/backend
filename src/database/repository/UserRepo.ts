@@ -316,7 +316,8 @@ async function findByRole(
   search?: string,
   filter?: string,
 ) {
-  console.log('🚀 ~ filter:', filter);
+  console.log('🚀 ~ filter:', limit);
+
   let result = await prisma.user.findMany({
     where: {
       roles: {
