@@ -92,4 +92,14 @@ router.get(
   }),
 );
 
+router.delete(
+  '/document/:id',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const deletedDocument = await DocumentRepo.deleteDocument(req.params.id);
+    new SuccessResponse('Document deleted successfully', deletedDocument).send(
+      res,
+    );
+  }),
+);
+
 export default router;
