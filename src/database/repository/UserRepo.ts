@@ -320,19 +320,6 @@ async function findByRole(
 ) {
   console.log('🚀 ~ filter:', limit);
 
-  const testQuery = await prisma.user.findMany({
-    where: {
-      roles: {
-        some: { code: roleCode },
-      },
-    },
-    select: {
-      id: true,
-      studentAllocations: true,
-      roles: true,
-    },
-  });
-
   let result = await prisma.user.findMany({
     where: {
       roles: {

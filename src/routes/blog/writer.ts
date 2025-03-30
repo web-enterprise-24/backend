@@ -20,9 +20,6 @@ const router = express.Router();
 router.use(authentication);
 /*-------------------------------------------------------------------------*/
 
-const formatEndpoint = (endpoint: string) =>
-  endpoint.replace(/\s/g, '').replace(/\//g, '-').replace(/\?/g, '');
-
 router.post(
   '/',
   validator(schema.blogCreate),
@@ -58,23 +55,18 @@ router.put(
     if (blog == null) throw new BadRequestError('Blog does not exists');
     if (blog.authorId !== req.user.id)
       throw new ForbiddenError("You don't have necessary permissions");
+    const bodyToUpdate = {
+      id: req.params.id,
+      title: req.body.title,
+      description: req.body.description,
+      contentRichText: req.body.contentRichText,
+      tags: req.body.tags,
+      imgUrl: req.body.imgUrl,
+    };
 
-    if (req.body.blogUrl && blog.blogUrl !== req.body.blogUrl) {
-      const endpoint = formatEndpoint(req.body.blogUrl);
-      const existingBlog = await BlogRepo.findUrlIfExists(endpoint);
-      if (existingBlog) throw new BadRequestError('Blog URL already used');
-      blog.blogUrl = endpoint;
-    }
-
-    if (req.body.title) blog.title = req.body.title;
-    if (req.body.description) blog.description = req.body.description;
-    if (req.body.text) blog.draftText = req.body.text;
-    if (req.body.tags) blog.tags = req.body.tags;
-    if (req.body.imgUrl) blog.imgUrl = req.body.imgUrl;
-    if (req.body.score) blog.score = req.body.score;
-
-    await BlogRepo.update(blog);
-    new SuccessResponse('Blog updated successfully', blog).send(res);
+    console.log('🚀 ~ bodyToUpdate:', bodyToUpdate);
+    const updatedBlog = await BlogRepo.update(bodyToUpdate as Blog);
+    new SuccessResponse('Blog updated successfully', updatedBlog).send(res);
   }),
 );
 
@@ -121,16 +113,10 @@ router.delete(
     if (blog.authorId !== req.user.id)
       throw new ForbiddenError("You don't have necessary permissions");
 
-    if (blog.isPublished) {
-      blog.isDraft = false;
-      // revert to the original state
-      // blog.draftText = blog.contentRichText || '';
-    } else {
-      blog.status = false;
-    }
-
-    await BlogRepo.update(blog);
-    return new SuccessMsgResponse('Blog deleted successfully').send(res);
+    const deletedBlog = await BlogRepo.deleteBlog(blog.id);
+    return new SuccessResponse('Blog deleted successfully', deletedBlog).send(
+      res,
+    );
   }),
 );
 

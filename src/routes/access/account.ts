@@ -82,7 +82,6 @@ router.get(
       UserRepo.countByRole(roleCode, status, search, filter),
     ]);
 
-    // Calculate total pages
     const totalPages = Math.ceil(total / limit);
 
     // Build pagination links

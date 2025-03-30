@@ -15,14 +15,14 @@ import { createNotification } from './NotificationRepo';
 //   return prisma.blog.create({ data: blog });
 // }
 async function create(blog: Blog): Promise<Blog> {
-  console.log("🚀 ~ create ~ blog:", blog);
+  console.log('🚀 ~ create ~ blog:', blog);
 
   // Create blog
   const newBlog = await prisma.blog.create({ data: blog });
 
   // Get staff list
   const staffList = await prisma.user.findMany({
-    where: { roles: { some: { code: "STAFF" } } },
+    where: { roles: { some: { code: 'STAFF' } } },
   });
 
   const user = await prisma.user.findUnique({
@@ -42,12 +42,12 @@ async function create(blog: Blog): Promise<Blog> {
     staffList.map((staff) =>
       createNotification({
         userId: staff.id,
-        title: "A New Blog Created",
+        title: 'A New Blog Created',
         message: `${userName} has submitted a new blog: ${newBlog.title}.`,
-        type: "blog",
+        type: 'blog',
         blogId: newBlog.id,
-      })
-    )
+      }),
+    ),
   );
 
   return newBlog;
@@ -71,7 +71,7 @@ async function findBlogAllDataById(id: string): Promise<Blog | null> {
   return prisma.blog.findUnique({
     where: { id: id, status: true },
     include: {
-      author: { select: { name: true, profilePicUrl: true, roles:true } },
+      author: { select: { name: true, profilePicUrl: true, roles: true } },
       comments: {
         orderBy: { createdAt: 'desc' },
         select: {
@@ -85,7 +85,13 @@ async function findBlogAllDataById(id: string): Promise<Blog | null> {
             },
           },
           user: {
-            select: { id: true, name: true, email: true, profilePicUrl: true, roles: true },
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profilePicUrl: true,
+              roles: true,
+            },
           },
         },
       },
@@ -101,7 +107,7 @@ async function findPublishedByUrl(blogUrl: string): Promise<Blog | null> {
         select: {
           name: true,
           profilePicUrl: true,
-          roles: true
+          roles: true,
         },
       },
     },
@@ -171,7 +177,7 @@ async function findDetailedBlogs(
   return prisma.blog.findMany({
     where: query,
     include: {
-      author: { select: { name: true, profilePicUrl: true, roles:true } },
+      author: { select: { name: true, profilePicUrl: true, roles: true } },
     },
     orderBy: { updatedAt: 'desc' },
   });
@@ -186,7 +192,7 @@ async function findLatestBlogs(
     skip: limit * (pageNumber - 1),
     take: limit,
     include: {
-      author: { select: { name: true, profilePicUrl: true, roles:true } },
+      author: { select: { name: true, profilePicUrl: true, roles: true } },
       comments: {
         orderBy: { createdAt: 'desc' },
         select: {
@@ -200,7 +206,13 @@ async function findLatestBlogs(
             },
           },
           user: {
-            select: { id: true, name: true, email: true, profilePicUrl: true, roles: true },
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profilePicUrl: true,
+              roles: true,
+            },
           },
         },
       },
@@ -253,9 +265,14 @@ async function searchLike(query: string, limit: number): Promise<Blog[]> {
   });
 }
 
+async function deleteBlog(id: string): Promise<Blog | null> {
+  return prisma.blog.delete({ where: { id: id } });
+}
+
 export default {
   create,
   update,
+  deleteBlog,
   findInfoById,
   findInfoForPublishedById,
   findBlogAllDataById,
