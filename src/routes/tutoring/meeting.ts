@@ -184,6 +184,32 @@ router.delete(
   }),
 );
 
+router.delete(
+  '/:id',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    // check role must be tutor
+    const actionTriggerUser = await UserRepo.findByEmail(req.user.email || '');
+    if (
+      !actionTriggerUser?.roles.some((role) => role.code === RoleCode.TUTOR)
+    ) {
+      throw new BadRequestError(
+        'You are not authorized to perform this action',
+      );
+    }
+    // check meeting is belog to this tutor
+    const meeting = await MeetingRepo.findById(req.params.id);
+    if (!meeting) {
+      throw new BadRequestError('Meeting not found');
+    }
+    if (meeting?.tutorId !== actionTriggerUser.id) {
+      throw new BadRequestError(
+        'You are not authorized to perform this action',
+      );
+    }
+    const deletedMeeting = await MeetingRepo.deleteMeeting(req.params.id);
+    new SuccessResponse('Meeting deleted', deletedMeeting).send(res);
+  }),
+);
 // router.get(
 //   '/details',
 //   asyncHandler(async (req: ProtectedRequest, res) => {
