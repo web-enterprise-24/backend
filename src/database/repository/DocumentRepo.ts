@@ -379,9 +379,15 @@ const generateDocxThumbnail = async (filePath: string): Promise<string> => {
   return outputPath;
 };
 
+// delete document
+async function deleteDocument(id: string): Promise<Document | null> {
+  return await prisma.document.delete({ where: { id } });
+}
+
 export default {
   getMyDocuments,
   getMyStudentsDocuments,
   generatePdfThumbnail,
   generateDocxThumbnail,
+  deleteDocument,
 };
