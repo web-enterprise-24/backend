@@ -27,7 +27,7 @@ router.post(
   '/',
   validator(schema.blogCreate),
   asyncHandler(async (req: ProtectedRequest, res) => {
-    console.log('🚀 ~ asyncHandler ~ req:', req.body);
+    // console.log('🚀 ~ asyncHandler ~ req:', req.body);
     // req.body.blogUrl = formatEndpoint(req.body.blogUrl);
 
     // const blog = await BlogRepo.findUrlIfExists(req.body.blogUrl);

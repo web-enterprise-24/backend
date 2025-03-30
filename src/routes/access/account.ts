@@ -85,7 +85,6 @@ router.get(
     // Calculate total pages
     const totalPages = Math.ceil(total / limit);
 
-    console.log('Query Params:', { roleCode, skip, limit, status, sortOrder, search, filter });
     // Build pagination links
     // const baseUrl = `${req.protocol}://${req.get('host')}${req.baseUrl}${req.path}`;
     const baseUrl = `https://${req.get('host')}${req.baseUrl}${req.path}`;

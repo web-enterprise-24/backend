@@ -318,7 +318,21 @@ async function findByRole(
   search?: string,
   filter?: string,
 ) {
-  console.log('🚀 ~ filter:', filter);
+  console.log('🚀 ~ filter:', limit);
+
+  const testQuery = await prisma.user.findMany({
+    where: {
+      roles: {
+        some: { code: roleCode },
+      },
+    },
+    select: {
+      id: true,
+      studentAllocations: true,
+      roles: true,
+    },
+  });
+
   let result = await prisma.user.findMany({
     where: {
       roles: {
@@ -326,6 +340,16 @@ async function findByRole(
           code: roleCode,
         },
       },
+      ...(filter === AllocateStatus.ALLOCATED && {
+        studentAllocations: {
+          some: {},
+        },
+      }),
+      ...(filter === AllocateStatus.UNALLOCATED && {
+        studentAllocations: {
+          none: {},
+        },
+      }),
       ...(status !== undefined && { status }),
       ...(search && {
         OR: [
@@ -375,8 +399,8 @@ async function findByRole(
     skip,
     take: limit,
   });
+
   if (filter === AllocateStatus.ALLOCATED) {
-    console.log('🚀 ~ filter:', filter);
     result = result.filter((user) => {
       return user.studentAllocations.length > 0;
     });
@@ -423,8 +447,6 @@ async function countByRole(
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
           { email: { contains: search, mode: 'insensitive' } },
-          // { firstName: { contains: search, mode: 'insensitive' } },
-          // { lastName: { contains: search, mode: 'insensitive' } }
         ],
       }),
     },
