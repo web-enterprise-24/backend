@@ -251,8 +251,23 @@ async function findById(id: string) {
   return meeting;
 }
 
+async function findRecordById(id: string) {
+  const record = await prisma.record.findUnique({
+    where: { id },
+    include: { meeting: { include: { tutor: true, student: true } } },
+  });
+  return record;
+}
+
+async function deleteRecord(id: string) {
+  const record = await prisma.record.delete({ where: { id } });
+  return record;
+}
+
 export default {
   findById,
+  findRecordById,
+  deleteRecord,
   createMeeting,
   getMyTutorSchedule,
   getMySchedule,
