@@ -73,9 +73,25 @@ router.post(
       },
     });
 
+    // Check if this is the first login
+    const loginCount = await prisma.userActivity.count({
+      where: {
+        userId: user.id,
+        activityType: 'LOGIN',
+      },
+    });
+
+    let loginMessage: string | null = null;
+    if (loginCount === 2 && !user.requiredPasswordChange) {
+      loginMessage = 'Welcome to the system! This is your first login.';
+    } else if (user.requiredPasswordChange) {
+      loginMessage = 'Please change your password to start using the system.';
+    }
+
     new SuccessResponse('Login Success', {
       user: userData,
       tokens: tokens,
+      loginMessage,
     }).send(res);
   }),
 );

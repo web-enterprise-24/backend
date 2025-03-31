@@ -308,6 +308,9 @@ async function getMostAccessedPages(limit = 5) {
 async function getMostUsedBrowsers(limit = 5) {
   const browsers = await prisma.userActivity.groupBy({
     by: ['browser'],
+    where: {
+      activityType: 'LOGIN',
+    },
     _count: {
       id: true,
     },

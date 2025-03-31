@@ -61,14 +61,11 @@ router.get(
       orderBy: {
         timestamp: 'desc',
       },
+      skip: 1, // Skip current (latest) login
     });
-    
-    let lastLoginMessage: string;
-    if (!lastLogin) {
-      // First login
-      lastLoginMessage = 'Welcome to the system! This is your first login.';
-    } else {
-      // Next login
+
+    let lastLoginMessage: string | null = null;
+    if (lastLogin) {
       const zonedTime = toZonedTime(lastLogin.timestamp, 'Asia/Ho_Chi_Minh');
       const lastLoginTime = format(zonedTime, "yyyy-MM-dd 'at' HH:mm:ss");
       lastLoginMessage = `Your last login was on ${lastLoginTime}.`;
