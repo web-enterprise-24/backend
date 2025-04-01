@@ -10,7 +10,7 @@ import authorization from '../../auth/authorization';
 
 const router = express.Router();
 
-router.use(authentication, role(RoleCode.STAFF, RoleCode.STAFF), authorization);
+router.use(authentication, role(RoleCode.STAFF), authorization);
 
 router.get(
   '/overviewMetrics',
