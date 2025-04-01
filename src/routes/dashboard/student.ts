@@ -5,10 +5,13 @@ import { SuccessResponse } from '../../core/ApiResponse';
 import authentication from '../../auth/authentication';
 import DashboardRepo from '../../database/repository/DashboardRepo';
 import { BadRequestError } from '../../core/ApiError';
+import role from '../../helpers/role';
+import { RoleCode } from '../../database/model/Role';
+import authorization from '../../auth/authorization';
 
 const router = express.Router();
 
-router.use(authentication);
+router.use(authentication, role(RoleCode.STUDENT, RoleCode.STAFF), authorization);
 
 router.get(
   '/tutorProfile',
