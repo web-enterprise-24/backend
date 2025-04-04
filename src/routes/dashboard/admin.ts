@@ -84,6 +84,17 @@ router.get(
 );
 
 router.get(
+  '/viewStaffDashboard/:staffId',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const staffId = req.params.staffId;
+    
+    const dashboardData = await DashboardRepo.getStaffDashboard(staffId);
+
+    new SuccessResponse('Success', dashboardData).send(res);
+  })
+);
+
+router.get(
   '/userLoginStats',
   asyncHandler(async (req: ProtectedRequest, res) => {
     const userStats = await DashboardRepo.getUserLoginStats();

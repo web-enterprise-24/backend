@@ -66,18 +66,6 @@ async function allocateTutor(studentId: string, tutorId: string) {
   const tutor = await UserRepo.findById(tutorId);
 
   if (student && tutor) {
-    // const studentMessage = `
-    //   <h3>Dear ${student.name},</h3>
-    //   <p>You have been assigned to the tutor <strong>${tutor.name}</strong>.</p>
-    //   <p>Please contact your tutor to begin your studies.</p>
-    // `;
-
-    // const tutorMessage = `
-    //   <h3>Dear ${tutor.name},</h3>
-    //   <p>The student <strong>${student.name}</strong> has been assigned to you.</p>
-    //   <p>Please contact the student to provide guidance.</p>
-    // `;
-
     const studentMessage = `
     <!DOCTYPE html>
     <html lang="en">
