@@ -44,7 +44,11 @@ async function getMyStudent(tutorId: string) {
   return students;
 }
 
-async function allocateTutor(studentId: string, tutorId: string) {
+async function allocateTutor(studentId: string, tutorId: string, staffId: string) {
+  if (!staffId) {
+    throw new BadRequestError('Staff ID is required to create allocation');
+  }
+  
   const getCurrentTutor = await getMyTutor(studentId);
   if (getCurrentTutor) {
     console.error('Student already have a tutor');
@@ -57,9 +61,17 @@ async function allocateTutor(studentId: string, tutorId: string) {
     return { success: false, message: 'Tutor is not available' };
   }
 
+  console.log('🚀 ~ Creating allocation with createdBy:', staffId);
   const allocation = await prisma.allocation.create({
-    data: { studentId, tutorId, startAt: new Date() },
+    data: { 
+      studentId, 
+      tutorId, 
+      startAt: new Date(), 
+      createdBy: staffId,
+    },
   });
+
+  console.log('🚀 ~ Created allocation:', allocation);
 
   // Get student and tutor information to send email
   const student = await UserRepo.findById(studentId);
@@ -238,13 +250,13 @@ async function allocateTutor(studentId: string, tutorId: string) {
   return { success: true, allocation };
 }
 
-async function allocateTutorWithManyStudents(tutorId: string, studentIds: string[]) 
+async function allocateTutorWithManyStudents(tutorId: string, studentIds: string[], staffId: string) 
 {
   const successAllocate = [];
   const failedAllocate = [];
 
   for (const studentId of studentIds) {
-    const allocate = await allocateTutor(studentId, tutorId);
+    const allocate = await allocateTutor(studentId, tutorId, staffId);
     if (allocate.success) successAllocate.push(studentId);
     else failedAllocate.push({ studentId, message: allocate.message });
   }
@@ -357,20 +369,31 @@ async function changeTutor(studentId: string, tutorId: string) {
   return allocation;
 }
 
-async function unallocateTutor(studentId: string) {
+async function unallocateTutor(studentId: string, staffId: string) {
   const myTutor = await getMyTutor(studentId);
   console.log('🚀 ~ unallocateTutor ~ myTutor:', myTutor);
   if (!myTutor) throw new BadRequestError('Student does not have a tutor');
 
-  const allocation = await prisma.allocation.delete({
+  // Update Allocation before deleting
+  const allocation = await prisma.allocation.update({
+    where: { studentId },
+    data: {
+      status: false,
+      canceledBy: staffId,
+    },
+  });
+
+  await prisma.allocation.delete({
     where: { studentId },
   });
 
   const allocationHistory = await prisma.allocationHistory.create({
     data: {
       tutorId: myTutor.id,
+      studentId: studentId,
       startAt: allocation.startAt,
       endAt: new Date(),
+      canceledBy: staffId,
     },
   });
 

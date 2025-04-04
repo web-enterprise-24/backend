@@ -15,11 +15,15 @@ router.post(
   '/',
   validator(schema.allocate),
   asyncHandler(async (req: ProtectedRequest, res) => {
+    console.log('🚀 ~ req.user:', req.user);
     const { studentIds, tutorId } = req.body;
+    const staffId = req.user.id;
+    console.log('🚀 ~ staffId:', staffId);
     console.log('🚀 ~ asyncHandler ~ studentIds:', studentIds);
     const allocation = await AllocateRepo.allocateTutorWithManyStudents(
       tutorId,
       studentIds,
+      staffId,
     );
     console.log('🚀 ~ asyncHandler ~ allocation:', allocation);
 
@@ -31,7 +35,8 @@ router.delete(
   '/:studentId',
   asyncHandler(async (req: ProtectedRequest, res) => {
     const { studentId } = req.params;
-    const allocation = await AllocateRepo.unallocateTutor(studentId);
+    const staffId = req.user.id;
+    const allocation = await AllocateRepo.unallocateTutor(studentId, staffId);
     new SuccessResponse('Deallocate tutor', allocation).send(res);
   }),
 );

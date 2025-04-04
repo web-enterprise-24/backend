@@ -87,7 +87,7 @@ router.get(
   '/viewStaffDashboard/:staffId',
   asyncHandler(async (req: ProtectedRequest, res) => {
     const staffId = req.params.staffId;
-    
+
     const dashboardData = await DashboardRepo.getStaffDashboard(staffId);
 
     new SuccessResponse('Success', dashboardData).send(res);
@@ -133,6 +133,22 @@ router.get(
   asyncHandler(async (req: ProtectedRequest, res) => {
     const usedBrowsers = await DashboardRepo.getMostUsedBrowsers();
     new SuccessResponse('Success', { usedBrowsers }).send(res);
+  })
+);
+
+router.get(
+  '/allocationCreators',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const allocationCreators = await DashboardRepo.getAllocationCreators();
+    new SuccessResponse('Success', { allocationCreators }).send(res);
+  })
+);
+
+router.get(
+  '/allocationCancelers',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const allocationCancelers = await DashboardRepo.getAllocationCancelers();
+    new SuccessResponse('Success', { allocationCancelers }).send(res);
   })
 );
 

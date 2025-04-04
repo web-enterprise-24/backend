@@ -376,6 +376,8 @@ async function getStaffDashboard(staffId: string) {
   const activeUsers = await getMostActiveUsersByRole();
   const accessedPages = await getMostAccessedPages();
   const usedBrowsers = await getMostUsedBrowsers();
+  const allocationCreators = await getAllocationCreators();
+  const allocationCancelers = await getAllocationCancelers();
 
   return {
     staffInfo: {
@@ -391,7 +393,145 @@ async function getStaffDashboard(staffId: string) {
     activeUsers,
     accessedPages,
     usedBrowsers,
+    allocationCreators,
+    allocationCancelers
   };
+}
+
+async function getAllocationCreators() {
+  const allocations = await prisma.allocation.findMany({
+    where: {
+      status: true,
+    },
+    select: {
+      id: true,
+      startAt: true,
+      student: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePicUrl: true,
+        },
+      },
+      tutor: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePicUrl: true,
+        },
+      },
+      creator: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePicUrl: true,
+        },
+      },
+    },
+    orderBy: {
+      startAt: 'desc',
+    },
+  });
+
+  return allocations.map((allocation) => ({
+    id: allocation.id,
+    student: {
+      id: allocation.student.id,
+      name: allocation.student.name || 'Unknown',
+      email: allocation.student.email,
+      avatar: allocation.student.profilePicUrl,
+    },
+    tutor: allocation.tutor
+      ? {
+          id: allocation.tutor.id,
+          name: allocation.tutor.name || 'Unknown',
+          email: allocation.tutor.email,
+          avatar: allocation.tutor.profilePicUrl,
+        }
+      : null,
+    creator: allocation.creator
+      ? {
+          id: allocation.creator.id,
+          name: allocation.creator.name || 'Unknown',
+          email: allocation.creator.email,
+          avatar: allocation.creator.profilePicUrl,
+        }
+      : { id: null, name: 'Unknown', email: null, avatar: null },
+    startAt: allocation.startAt,
+  }));
+}
+
+async function getAllocationCancelers() {
+  const histories = await prisma.allocationHistory.findMany({
+    select: {
+      id: true,
+      studentId: true,
+      tutorId: true,
+      startAt: true,
+      endAt: true,
+      canceledBy: true,
+      student: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePicUrl: true,
+        },
+      },
+      tutor: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePicUrl: true,
+        },
+      },
+      canceler: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          profilePicUrl: true,
+        },
+      },
+    },
+    orderBy: {
+      startAt: 'desc',
+    },
+  });
+
+  const canceledAllocations = histories.map((history) => ({
+    id: history.id,
+    student: {
+      id: history.student.id,
+      name: history.student.name || 'Unknown',
+      email: history.student.email,
+      avatar: history.student.profilePicUrl,
+    },
+    tutor: history.tutor
+      ? {
+          id: history.tutor.id,
+          name: history.tutor.name || 'Unknown',
+          email: history.tutor.email,
+          avatar: history.tutor.profilePicUrl,
+        }
+      : null,
+    canceler: history.canceler
+      ? {
+          id: history.canceler.id,
+          name: history.canceler.name || 'Unknown',
+          email: history.canceler.email,
+          avatar: history.canceler.profilePicUrl,
+        }
+      : { id: null, name: 'Unknown', email: null, avatar: null },
+    startAt: history.startAt,
+    canceledAt: history.endAt,
+  }));
+
+  return canceledAllocations;
 }
 
 /*----Student----*/
@@ -1023,6 +1163,8 @@ export default {
   getMostUsedBrowsers,
   getUserLoginStats,
   getStaffDashboard,
+  getAllocationCreators,
+  getAllocationCancelers,
   getTutorProfile,
   getStudentOverviewMetrics,
   getUpcomingMeetingsForStudent,
