@@ -195,25 +195,6 @@ async function getMostActiveUsersByRole() {
   return result;
 }
 
-// async function getMostAccessedPages(limit = 5) {
-//   const pages = await prisma.userActivity.groupBy({
-//     by: ['pageUrl'],
-//     where: {
-//       activityType: 'PAGE_VISIT',
-//     },
-//     _count: {
-//       id: true,
-//     },
-//     orderBy: {
-//       _count: {
-//         id: 'desc',
-//       },
-//     },
-//     take: limit,
-//   });
-//   return pages.map(p => ({ pageUrl: p.pageUrl, visitCount: p._count.id }));
-// }
-
 const apiToPageMapping: { [key: string]: string } ={
   '/profile/my': 'Profile Page',
   '/profile': 'Profile Page',
@@ -364,6 +345,53 @@ async function getUserLoginStats() {
   });
 
   return userStats;
+}
+
+async function getStaffDashboard(staffId: string) {
+  const staff = await prisma.user.findUnique({
+    where: {
+      id: staffId,
+      roles: {
+        some: {
+          code: 'STAFF',
+        },
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      profilePicUrl: true,
+    },
+  });
+
+  if (!staff) {
+    throw new Error('Staff not found');
+  }
+
+  const overviewMetrics = await getOverviewMetrics();
+  const tutorActivity = await getTutorActivity();
+  const tutorPerformance = await getTutorPerformance();
+  const userLoginStats = await getUserLoginStats();
+  const activeUsers = await getMostActiveUsersByRole();
+  const accessedPages = await getMostAccessedPages();
+  const usedBrowsers = await getMostUsedBrowsers();
+
+  return {
+    staffInfo: {
+      id: staff.id,
+      name: staff.name || 'Unknown',
+      email: staff.email,
+      avatar: staff.profilePicUrl,
+    },
+    overviewMetrics,
+    tutorActivity,
+    tutorPerformance,
+    userLoginStats,
+    activeUsers,
+    accessedPages,
+    usedBrowsers,
+  };
 }
 
 /*----Student----*/
@@ -990,11 +1018,12 @@ export default {
   getOverviewMetrics,
   getTutorActivity,
   getTutorPerformance,
-  getTutorProfile,
   getMostActiveUsersByRole,
   getMostAccessedPages,
   getMostUsedBrowsers,
   getUserLoginStats,
+  getStaffDashboard,
+  getTutorProfile,
   getStudentOverviewMetrics,
   getUpcomingMeetingsForStudent,
   getRecentDocuments,
