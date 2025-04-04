@@ -39,6 +39,11 @@ model User {
   meetings               Meeting[]      @relation(name: "StudentMeetings")
   tutorMeetings          Meeting[]      @relation(name: "TutorMeetings")
   activityLogs           UserActivity[] 
+  allocationCreator      Allocation[]   @relation(name: "AllocationCreator")
+  allocationCanceler     Allocation[]   @relation(name: "AllocationCanceler")
+  allocationHistory      AllocationHistory[] @relation(name: "AllocationHistoryCanceler")
+  allocationHistoryStudent  AllocationHistory[] @relation(name: "AllocationHistoryStudent")
+  allocationHistoryTutor    AllocationHistory[] @relation(name: "TutorAllocations")
 }
 
 model Blog {
@@ -102,6 +107,10 @@ model Allocation {
   tutorId   String?
   status    Boolean  @default(true)
   startAt   DateTime
+  createdBy String? 
+  creator   User?    @relation(name: "AllocationCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  canceledBy String?
+  canceler  User?    @relation(name: "AllocationCanceler", fields: [canceledBy], references: [id], onDelete: Cascade)
   student   User     @relation(name: "StudentAllocations", fields: [studentId], references: [id], onDelete: Cascade)
   tutor     User?    @relation(name: "TutorAllocations", fields: [tutorId], references: [id], onDelete: Cascade)
 }
@@ -109,10 +118,15 @@ model Allocation {
 model AllocationHistory {
   id        String   @id @default(cuid())
   tutorId   String
+  tutor       User?    @relation("TutorAllocations", fields: [tutorId], references: [id])
+  studentId String
+  student   User     @relation(name: "AllocationHistoryStudent", fields: [studentId], references: [id], onDelete: Cascade)
   startAt   DateTime
   endAt     DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  canceledBy String?
+  canceler  User?    @relation(name: "AllocationHistoryCanceler", fields: [canceledBy], references: [id], onDelete: Cascade)
 }
 
 model Message {
