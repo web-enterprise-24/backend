@@ -38,6 +38,7 @@ model User {
   notifications          Notification[] @relation(name: "UserNotifications")
   meetings               Meeting[]      @relation(name: "StudentMeetings")
   tutorMeetings          Meeting[]      @relation(name: "TutorMeetings")
+  allocators             AllocationHistory[] @relation(name: "Allocators")
   activityLogs           UserActivity[] 
 }
 
@@ -109,6 +110,8 @@ model Allocation {
 model AllocationHistory {
   id        String   @id @default(cuid())
   tutorId   String
+  allocatorId String
+  allocator User     @relation(name: "Allocators", fields: [allocatorId], references: [id], onDelete: Cascade)
   startAt   DateTime
   endAt     DateTime
   createdAt DateTime @default(now())
