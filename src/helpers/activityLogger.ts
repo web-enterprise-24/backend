@@ -1,7 +1,7 @@
 import express, { Response, NextFunction } from 'express';
 import { ProtectedRequest } from 'app-request';
-import prisma from '../database/prismaClient';
-import { UAParser } from 'ua-parser-js';
+// import prisma from '../database/prismaClient';
+// import { UAParser } from 'ua-parser-js';
 
 const router = express.Router();
 
@@ -13,19 +13,19 @@ const logPageVisit = async (req: ProtectedRequest, res: Response, next: NextFunc
       return next();
     }
 
-    if (req.user) {
-      const parser = new UAParser(req.headers['user-agent']);
-      const browser = parser.getBrowser().name || 'Unknown';
+    // if (req.user) {
+    //   const parser = new UAParser(req.headers['user-agent']);
+    //   const browser = parser.getBrowser().name || 'Unknown';
 
-      await prisma.userActivity.create({
-        data: {
-          userId: req.user.id,
-          activityType: 'PAGE_VISIT',
-          pageUrl: req.originalUrl,
-          browser,
-        },
-      });
-    }
+    //   await prisma.userActivity.create({
+    //     data: {
+    //       userId: req.user.id,
+    //       activityType: 'PAGE_VISIT',
+    //       pageUrl: req.originalUrl,
+    //       browser,
+    //     },
+    //   });
+    // }
     next();
   } catch (error) {
     console.error('Error recording pageviews:', error);

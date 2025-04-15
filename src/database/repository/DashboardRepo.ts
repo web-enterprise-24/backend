@@ -195,65 +195,96 @@ async function getMostActiveUsersByRole() {
   return result;
 }
 
-const apiToPageMapping: { [key: string]: string } ={
-  '/profile/my': 'Profile Page',
-  '/profile': 'Profile Page',
-  '/profile/create': 'Management Page',
-  '/allocate': 'Management Page',
-  '/account': 'Management Page',
-  '/upload': 'Document Page',
-  '/upload/myDocuments': 'Document Page',
-  '/upload/myStudentsDocuments': 'Document Page',
-  '/feedback': 'Document Page',
-  '/chat': 'Chat Page',
-  '/chat/userChat': 'Chat Page',
-  '/chat/findUserChat': 'Chat Page',
-  '/chat/unreadMessages': 'Chat Page',
-  '/blogs/latest': 'Blog Page',
-  '/blog/writer': 'Blog Page',
-  '/blog/editor/submitted/all': 'Blog Page',
-  '/blog/editor/publish': 'Blog Page',
-  '/blog/editor/unpublish': 'Blog Page',
-  '/comment': 'Blog Page',
-  '/notification': 'Notification Page',
-  '/notification/read': 'Notification Page',
-  '/admin/overviewMetrics': 'Staff Dashboard Page',
-  '/admin/tutorActivity': 'Staff Dashboard Page',
-  '/admin/tutorPerformance': 'Staff Dashboard Page',
-  '/admin/viewTutorDashboard': 'Staff Dashboard Page',
-  '/admin/viewStudentDashboard': 'Staff Dashboard Page',
-  '/admin/userActivityStats': 'Staff Dashboard Page',
-  '/admin/getActiveUsers': 'Staff Dashboard Page',
-  '/admin/getAccessedPages': 'Staff Dashboard Page',
-  '/admin/getUsedBrowsers': 'Staff Dashboard Page',
-  '/admin/userLoginStats': 'Staff Dashboard Page',
-  '/student/tutorProfile': 'Student Dashboard Page',
-  '/student/studentOverviewMetrics': 'Student Dashboard Page',
-  '/student/upcomingMeetings': 'Student Dashboard Page',
-  '/student/recentDocuments': 'Student Dashboard Page',
-  '/student/studentActivity': 'Student Dashboard Page',
-  '/tutor/tutorOverviewMetrics': 'Tutor Dashboard Page',
-  '/tutor/tuteesInformation': 'Tutor Dashboard Page',
-  '/tutor/upcomingMeetings': 'Tutor Dashboard Page',
-  '/tutor/recentlyUploadedDocuments': 'Tutor Dashboard Page',
-  '/tutor/tuteesActivity': 'Tutor Dashboard Page',
-  '/tutor/documentFeedbackAnalytics': 'Tutor Dashboard Page',
-  '/meeting': 'Meeting Page',
-  '/meeting/tutor': 'Meeting Page',
-  '/meeting/accept': 'Meeting Page',
-  '/meeting/cancel': 'Meeting Page',
-  '/meeting/history': 'Meeting Page',
-  '/meeting/record': 'Meeting Page',
-};
+// const apiToPageMapping: { [key: string]: string } ={
+//   '/profile/my': 'Profile Page',
+//   '/profile': 'Profile Page',
+//   '/profile/create': 'Management Page',
+//   '/allocate': 'Management Page',
+//   '/account': 'Management Page',
+//   '/upload': 'Document Page',
+//   '/upload/myDocuments': 'Document Page',
+//   '/upload/myStudentsDocuments': 'Document Page',
+//   '/feedback': 'Document Page',
+//   '/chat': 'Chat Page',
+//   '/chat/userChat': 'Chat Page',
+//   '/chat/findUserChat': 'Chat Page',
+//   '/chat/unreadMessages': 'Chat Page',
+//   '/blogs/latest': 'Blog Page',
+//   '/blog/writer': 'Blog Page',
+//   '/blog/editor/submitted/all': 'Blog Page',
+//   '/blog/editor/publish': 'Blog Page',
+//   '/blog/editor/unpublish': 'Blog Page',
+//   '/comment': 'Blog Page',
+//   '/notification': 'Notification Page',
+//   '/notification/read': 'Notification Page',
+//   '/admin/overviewMetrics': 'Staff Dashboard Page',
+//   '/admin/tutorActivity': 'Staff Dashboard Page',
+//   '/admin/tutorPerformance': 'Staff Dashboard Page',
+//   '/admin/viewTutorDashboard': 'Staff Dashboard Page',
+//   '/admin/viewStudentDashboard': 'Staff Dashboard Page',
+//   '/admin/userActivityStats': 'Staff Dashboard Page',
+//   '/admin/getActiveUsers': 'Staff Dashboard Page',
+//   '/admin/getAccessedPages': 'Staff Dashboard Page',
+//   '/admin/getUsedBrowsers': 'Staff Dashboard Page',
+//   '/admin/userLoginStats': 'Staff Dashboard Page',
+//   '/student/tutorProfile': 'Student Dashboard Page',
+//   '/student/studentOverviewMetrics': 'Student Dashboard Page',
+//   '/student/upcomingMeetings': 'Student Dashboard Page',
+//   '/student/recentDocuments': 'Student Dashboard Page',
+//   '/student/studentActivity': 'Student Dashboard Page',
+//   '/tutor/tutorOverviewMetrics': 'Tutor Dashboard Page',
+//   '/tutor/tuteesInformation': 'Tutor Dashboard Page',
+//   '/tutor/upcomingMeetings': 'Tutor Dashboard Page',
+//   '/tutor/recentlyUploadedDocuments': 'Tutor Dashboard Page',
+//   '/tutor/tuteesActivity': 'Tutor Dashboard Page',
+//   '/tutor/documentFeedbackAnalytics': 'Tutor Dashboard Page',
+//   '/meeting': 'Meeting Page',
+//   '/meeting/tutor': 'Meeting Page',
+//   '/meeting/accept': 'Meeting Page',
+//   '/meeting/cancel': 'Meeting Page',
+//   '/meeting/history': 'Meeting Page',
+//   '/meeting/record': 'Meeting Page',
+// };
 
-function mapApiToPage(apiUrl: string): string {
-  // Bỏ query parameters, chỉ lấy base path
-  const baseUrl = apiUrl.split('?')[0].replace(/\/$/, ''); // Bỏ / ở cuối
-  const matchedKey = Object.keys(apiToPageMapping).find((key) =>
-    baseUrl.startsWith(key)
-  );
-  return matchedKey ? apiToPageMapping[matchedKey] : apiUrl;
-}
+// function mapApiToPage(apiUrl: string): string {
+//   // Bỏ query parameters, chỉ lấy base path
+//   const baseUrl = apiUrl.split('?')[0].replace(/\/$/, ''); // Bỏ / ở cuối
+//   const matchedKey = Object.keys(apiToPageMapping).find((key) =>
+//     baseUrl.startsWith(key)
+//   );
+//   return matchedKey ? apiToPageMapping[matchedKey] : apiUrl;
+// }
+
+// async function getMostAccessedPages(limit = 5) {
+//   // Get all UserActivity records with activityType as PAGE_VISIT
+//   const activities = await prisma.userActivity.findMany({
+//     where: {
+//       activityType: 'PAGE_VISIT',
+//     },
+//     select: {
+//       pageUrl: true,
+//     },
+//   });
+
+//   // Group pageUrls into "pages" based on mapping
+//   const pageCounts = activities.reduce((acc, activity) => {
+//     const pageUrl = activity.pageUrl ?? 'Unknown';
+//     const pageName = mapApiToPage(pageUrl);
+//     acc[pageName] = (acc[pageName] || 0) + 1;
+//     return acc;
+//   }, {} as { [key: string]: number });
+
+//   // Convert object to array and sort by number of visits
+//   const sortedPages = Object.entries(pageCounts)
+//     .map(([pageName, visitCount]) => ({
+//       pageName,
+//       visitCount,
+//     }))
+//     .sort((a, b) => b.visitCount - a.visitCount)
+//     .slice(0, limit);
+
+//   return sortedPages;
+// }
 
 async function getMostAccessedPages(limit = 5) {
   // Get all UserActivity records with activityType as PAGE_VISIT
@@ -266,15 +297,21 @@ async function getMostAccessedPages(limit = 5) {
     },
   });
 
-  // Group pageUrls into "pages" based on mapping
-  const pageCounts = activities.reduce((acc, activity) => {
-    const pageUrl = activity.pageUrl ?? 'Unknown';
-    const pageName = mapApiToPage(pageUrl);
-    acc[pageName] = (acc[pageName] || 0) + 1;
-    return acc;
-  }, {} as { [key: string]: number });
+  const convertSnakeCaseToTitleCase = (str: string) => {
+    return str
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+  const pageCounts = activities.reduce(
+    (acc, activity) => {
+      const pageUrl = activity.pageUrl ?? 'Unknown';
+      const pageName = convertSnakeCaseToTitleCase(pageUrl);
+      acc[pageName] = (acc[pageName] || 0) + 1;
+      return acc;
+    },
+    {} as { [key: string]: number },
+  );
 
-  // Convert object to array and sort by number of visits
   const sortedPages = Object.entries(pageCounts)
     .map(([pageName, visitCount]) => ({
       pageName,
@@ -284,6 +321,21 @@ async function getMostAccessedPages(limit = 5) {
     .slice(0, limit);
 
   return sortedPages;
+}
+
+async function createStatistic(
+  pageKey: string,
+  userId: string,
+  browser: string,
+) {
+  await prisma.userActivity.create({
+    data: {
+      activityType: 'PAGE_VISIT',
+      pageUrl: pageKey,
+      userId,
+      browser,
+    },
+  });
 }
 
 async function getMostUsedBrowsers(limit = 5) {
@@ -1116,6 +1168,7 @@ export default {
   getTutorPerformance,
   getMostActiveUsersByRole,
   getMostAccessedPages,
+  createStatistic,
   getMostUsedBrowsers,
   getUserLoginStats,
   getStaffDashboard,
