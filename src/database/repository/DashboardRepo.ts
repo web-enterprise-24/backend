@@ -196,54 +196,56 @@ async function getMostActiveUsersByRole() {
 }
 
 const apiToPageMapping: { [key: string]: string } ={
-  '/profile/my': 'Profile Page',
+  // '/profile/my': 'Profile Page',
   '/profile': 'Profile Page',
-  '/profile/create': 'Management Page',
-  '/allocate': 'Management Page',
-  '/account': 'Management Page',
-  '/upload': 'Document Page',
+  // '/management': 'Management Page',
+  // '/profile/create': 'Management Page',
+  // '/allocate': 'Management Page',
+  // '/account': 'Management Page',
+  // '/upload': 'Document Page',
   '/upload/myDocuments': 'Document Page',
   '/upload/myStudentsDocuments': 'Document Page',
-  '/feedback': 'Document Page',
-  '/chat': 'Chat Page',
+  // '/feedback': 'Document Page',
+  // '/chat': 'Chat Page',
   '/chat/userChat': 'Chat Page',
-  '/chat/findUserChat': 'Chat Page',
-  '/chat/unreadMessages': 'Chat Page',
-  '/blogs/latest': 'Blog Page',
-  '/blog/writer': 'Blog Page',
-  '/blog/editor/submitted/all': 'Blog Page',
-  '/blog/editor/publish': 'Blog Page',
-  '/blog/editor/unpublish': 'Blog Page',
-  '/comment': 'Blog Page',
-  '/notification': 'Notification Page',
-  '/notification/read': 'Notification Page',
+  // '/chat/findUserChat': 'Chat Page',
+  // '/chat/unreadMessages': 'Chat Page',
+  'blog': 'Blog Page',
+  // '/blogs/latest': 'Blog Page',
+  // '/blog/writer': 'Blog Page',
+  // '/blog/editor/submitted/all': 'Blog Page',
+  // '/blog/editor/publish': 'Blog Page',
+  // '/blog/editor/unpublish': 'Blog Page',
+  // '/comment': 'Blog Page',
+  // '/notification': 'Notification Page',
+  // '/notification/read': 'Notification Page',
   '/admin/overviewMetrics': 'Staff Dashboard Page',
-  '/admin/tutorActivity': 'Staff Dashboard Page',
-  '/admin/tutorPerformance': 'Staff Dashboard Page',
-  '/admin/viewTutorDashboard': 'Staff Dashboard Page',
-  '/admin/viewStudentDashboard': 'Staff Dashboard Page',
-  '/admin/userActivityStats': 'Staff Dashboard Page',
-  '/admin/getActiveUsers': 'Staff Dashboard Page',
-  '/admin/getAccessedPages': 'Staff Dashboard Page',
-  '/admin/getUsedBrowsers': 'Staff Dashboard Page',
-  '/admin/userLoginStats': 'Staff Dashboard Page',
+  // '/admin/tutorActivity': 'Staff Dashboard Page',
+  // '/admin/tutorPerformance': 'Staff Dashboard Page',
+  // '/admin/viewTutorDashboard': 'Staff Dashboard Page',
+  // '/admin/viewStudentDashboard': 'Staff Dashboard Page',
+  // '/admin/userActivityStats': 'Staff Dashboard Page',
+  // '/admin/getActiveUsers': 'Staff Dashboard Page',
+  // '/admin/getAccessedPages': 'Staff Dashboard Page',
+  // '/admin/getUsedBrowsers': 'Staff Dashboard Page',
+  // '/admin/userLoginStats': 'Staff Dashboard Page',
   '/student/tutorProfile': 'Student Dashboard Page',
-  '/student/studentOverviewMetrics': 'Student Dashboard Page',
-  '/student/upcomingMeetings': 'Student Dashboard Page',
-  '/student/recentDocuments': 'Student Dashboard Page',
-  '/student/studentActivity': 'Student Dashboard Page',
+  // '/student/studentOverviewMetrics': 'Student Dashboard Page',
+  // '/student/upcomingMeetings': 'Student Dashboard Page',
+  // '/student/recentDocuments': 'Student Dashboard Page',
+  // '/student/studentActivity': 'Student Dashboard Page',
   '/tutor/tutorOverviewMetrics': 'Tutor Dashboard Page',
-  '/tutor/tuteesInformation': 'Tutor Dashboard Page',
-  '/tutor/upcomingMeetings': 'Tutor Dashboard Page',
-  '/tutor/recentlyUploadedDocuments': 'Tutor Dashboard Page',
-  '/tutor/tuteesActivity': 'Tutor Dashboard Page',
-  '/tutor/documentFeedbackAnalytics': 'Tutor Dashboard Page',
+  // '/tutor/tuteesInformation': 'Tutor Dashboard Page',
+  // '/tutor/upcomingMeetings': 'Tutor Dashboard Page',
+  // '/tutor/recentlyUploadedDocuments': 'Tutor Dashboard Page',
+  // '/tutor/tuteesActivity': 'Tutor Dashboard Page',
+  // '/tutor/documentFeedbackAnalytics': 'Tutor Dashboard Page',
   '/meeting': 'Meeting Page',
-  '/meeting/tutor': 'Meeting Page',
-  '/meeting/accept': 'Meeting Page',
-  '/meeting/cancel': 'Meeting Page',
-  '/meeting/history': 'Meeting Page',
-  '/meeting/record': 'Meeting Page',
+  // '/meeting/tutor': 'Meeting Page',
+  // '/meeting/accept': 'Meeting Page',
+  // '/meeting/cancel': 'Meeting Page',
+  // '/meeting/history': 'Meeting Page',
+  // '/meeting/record': 'Meeting Page',
 };
 
 function mapApiToPage(apiUrl: string): string {
@@ -643,13 +645,9 @@ async function getUpcomingMeetingsForStudent(
 
   return meetings.map((meeting) => ({
     id: meeting.id,
-    // title:
-    //   `Meeting with tutor ${meeting.tutor.name || ''}`.trim() ||
-    //   'Tutor Meeting',
     title : meeting.title,
     startAt: meeting.start,
     endAt: meeting.end,
-    // location: meeting.fileUrl ? 'Virtual' : 'In-Person', // Assuming fileUrl indicates a virtual meeting link
   }));
 }
 
@@ -738,8 +736,6 @@ async function getStudentActivity(
 
 // Get overview metrics for a tutor
 async function getTutorOverviewMetrics(tutorId: string) {
-  // const now = new Date();
-
   // Count total tutees assigned to the tutor
   const tuteeCount = await prisma.allocation.count({
     where: {
@@ -792,11 +788,7 @@ async function getTutorOverviewMetrics(tutorId: string) {
 // Get tutees information for a tutor with pagination
 async function getTuteesInformation(
   tutorId: string,
-  // page: number,
-  // limit: number,
-  // baseUrl: string,
 ) {
-  // const skip = (page - 1) * limit;
 
   // Fetch tutees with pagination
   const tutees = await prisma.user.findMany({
@@ -808,8 +800,6 @@ async function getTuteesInformation(
         },
       },
     },
-    // skip: skip,
-    // take: limit,
     select: {
       id: true,
       name: true,
@@ -818,35 +808,7 @@ async function getTuteesInformation(
     },
   });
 
-  // Count total tutees for pagination
-  // const totalTutees = await prisma.user.count({
-  //   where: {
-  //     studentAllocations: {
-  //       some: {
-  //         tutorId: tutorId,
-  //         status: true,
-  //       },
-  //     },
-  //   },
-  // });
-
-  // Calculate total pages
-  // const totalPages = Math.ceil(totalTutees / limit);
-
-  // Create pagination links
-  // const pagination: { [key: string]: string | null } = {
-  //   nextPage:
-  //     page < totalPages ? `${baseUrl}?page=${page + 1}&limit=${limit}` : null,
-  //   previousPage:
-  //     page > 1 ? `${baseUrl}?page=${page - 1}&limit=${limit}` : null,
-  // };
-
-  // Return formatted response
   return {
-    // totalPages,
-    // currentPage: page,
-    // totalTutees,
-    // pagination,
     tutees: tutees.map((tutee) => ({
       id: tutee.id,
       name: tutee.name || 'Unknown',
@@ -859,17 +821,16 @@ async function getTuteesInformation(
 // Get upcoming meetings for a tutor
 async function getUpcomingMeetingsForTutor(tutorId: string, limit: number = 3) {
   const now = new Date();
-
   const meetings = await prisma.meeting.findMany({
     where: {
       tutorId: tutorId,
       start: {
-        gt: now, // Only fetch meetings in the future
+        gt: now,
       },
-      status: true, // Only active meetings
+      status: true,
     },
     orderBy: {
-      start: 'asc', // Sort by start time, nearest first
+      start: 'asc',
     },
     take: limit,
     select: {
@@ -887,8 +848,6 @@ async function getUpcomingMeetingsForTutor(tutorId: string, limit: number = 3) {
 
   return meetings.map((meeting) => ({
     id: meeting.id,
-    // title:
-    //   `Meeting with ${meeting.student.name || ''}`.trim() || 'Student Meeting',
     title : meeting.title,
     startAt: meeting.start,
     endAt: meeting.end,
@@ -911,7 +870,7 @@ async function getRecentlyUploadedDocuments(
       },
     },
     orderBy: {
-      createdAt: 'desc', // Sắp xếp theo ngày tải lên mới nhất
+      createdAt: 'desc',
     },
     take: limit,
     select: {
@@ -1021,7 +980,6 @@ async function getTuteesActivity(
             gte: intervalObj.start,
             lt: end,
           },
-          // status: true, // Only count active meetings
         },
       });
 
@@ -1055,11 +1013,11 @@ async function getDocumentFeedbackAnalytics(
   const now = new Date();
   let startDate: Date;
 
-  // efine start date based on timeRange
+  // Define start date based on timeRange
   if (timeRange === 'thisWeek') {
-    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 ngày trước
+    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   } else {
-    startDate = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000); // 28 ngày trước (4 tuần)
+    startDate = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
   }
 
   // Get the tutor's list of tutees
@@ -1082,7 +1040,7 @@ async function getDocumentFeedbackAnalytics(
   // Define intervals
   const intervals = [];
   if (timeRange === 'thisWeek') {
-    // Chia theo ngày trong tuần (7 ngày)
+    // Divide by day of the week (7 days)
     for (let i = 0; i < 7; i++) {
       const day = new Date(startDate.getTime() + i * 24 * 60 * 60 * 1000);
       intervals.push({
