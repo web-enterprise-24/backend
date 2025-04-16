@@ -11,6 +11,17 @@ import { UAParser } from 'ua-parser-js';
 
 const router = express.Router();
 
+router.post(
+  '/statistic',
+  asyncHandler(async (req: ProtectedRequest, res) => {
+    const { pageKey } = req.body;
+    const parser = new UAParser(req.headers['user-agent']);
+    const browser = parser.getBrowser().name || 'Unknown';
+    await DashboardRepo.createStatistic(pageKey, req.user.id, browser);
+    new SuccessResponse('Saved successfully', { pageKey }).send(res);
+  }),
+);
+
 router.use(authentication, role(RoleCode.STAFF), authorization);
 
 router.get(
@@ -127,17 +138,6 @@ router.get(
     const accessedPages = await DashboardRepo.getMostAccessedPages();
     new SuccessResponse('Success', { accessedPages }).send(res);
   })
-);
-
-router.post(
-  '/statistic',
-  asyncHandler(async (req: ProtectedRequest, res) => {
-    const { pageKey } = req.body;
-    const parser = new UAParser(req.headers['user-agent']);
-    const browser = parser.getBrowser().name || 'Unknown';
-    await DashboardRepo.createStatistic(pageKey, req.user.id, browser);
-    new SuccessResponse('Saved successfully', { pageKey }).send(res);
-  }),
 );
 
 router.get(
